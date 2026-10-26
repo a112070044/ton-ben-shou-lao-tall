@@ -84,14 +84,14 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 #bossCard .bc-stage{position:absolute;right:0;bottom:calc(34px + env(safe-area-inset-bottom,0px));width:min(620px,100%);height:min(58vh,540px)}
 #bossCard canvas{position:absolute;right:max(3%,env(safe-area-inset-right,0px));bottom:0;height:100%;width:auto;max-width:70%;object-fit:contain;object-position:bottom right;
   animation:slideIn .55s .1s cubic-bezier(.2,1.25,.4,1) both;filter:drop-shadow(10px 10px 0 rgba(0,0,0,.35))}
-#bossCard .bc-say{position:absolute;right:calc(max(3%,env(safe-area-inset-right,0px)) + 52%);top:22%;max-width:min(54%,300px);background:#fff;border:4px solid var(--ink);
-  border-radius:20px;padding:10px 16px;font-family:var(--font-display);font-weight:900;font-size:clamp(20px,5.6vw,34px);line-height:1.2;
+#bossCard .bc-say{white-space:pre;position:absolute;right:calc(max(3%,env(safe-area-inset-right,0px)) + 52%);top:20%;max-width:min(68%,470px);background:#fff;border:4px solid var(--ink);
+  border-radius:20px;padding:10px 16px;font-family:var(--font-display);font-weight:900;font-size:clamp(20px,2.7vw,32px);line-height:1.25;
   box-shadow:0 6px 0 var(--ink);transform:rotate(-3deg);animation:pop .35s .85s cubic-bezier(.2,1.8,.4,1) both;color:var(--ink)}
 #bossCard .bc-say::after{content:"";position:absolute;right:-22px;bottom:18px;border:14px solid transparent;border-left:22px solid var(--ink)}
 #bossCard .bc-say::before{content:"";position:absolute;right:-14px;bottom:22px;border:10px solid transparent;border-left:16px solid #fff;z-index:1}
 #bossCard .bc-skip{position:absolute;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
   font-size:12px;font-weight:700;color:#fff;opacity:.85;text-shadow:0 1px 2px #000;white-space:nowrap}
-@media (max-width:520px){#bossCard .bc-stage{height:54vh}#bossCard .bc-say{top:4%;left:max(16px,env(safe-area-inset-left,0px));right:auto;max-width:none;white-space:nowrap;font-size:24px}}
+@media (max-width:520px){#bossCard .bc-stage{height:54vh}#bossCard .bc-say{top:2%;left:max(16px,env(safe-area-inset-left,0px));right:auto;max-width:calc(100% - 56px);font-size:22px;white-space:pre-line}}
 @keyframes slideIn{from{transform:translateX(120%)}to{transform:translateX(0)}}
 @keyframes slamName{from{transform:rotate(-5deg) scale(3) translateX(-30%);opacity:0}to{transform:rotate(-5deg) scale(1);opacity:1}}
 @keyframes pop{from{transform:scale(0) rotate(-3deg);opacity:0}to{transform:scale(1) rotate(-3deg);opacity:1}}
@@ -694,12 +694,12 @@ function updateOld(o, dt) {
 // opening：出場時的開場白（一句一句講，講完才開打）
 const BOSSES = [
   { key: 'shrug', name: '聳肩', hp: 6, speed: 72, range: 430, score: 10,
-    tip: '小心他聳肩的震波！', intro: '「聳肩」從教務處走出來了', catch: '我也沒辦法啊～', colors: ['#5a6378', '#3c4252'],
-    opening: ['誰在這裡鬧事？', '唉……我也沒辦法啊～', '規定就是規定，你自己看著辦'],
-    walk: ['我也沒辦法啊', '嗯…這個嘛…'],
-    wind: ['嗯……這個嘛……', '唉……', '你這樣讓我很為難'],
-    attack: ['我也沒辦法啊～', '這不是我能決定的', '你問我我問誰？', '上面說的啦', '規定就是這樣啊'],
-    hurt: ['唉唷！', '我的痣！！', '我的痣毛！', '你哪一班的！'], down: '我…我也沒辦法啊……' },
+    tip: '小心他聳肩的震波！', intro: '「聳肩」從教務處走出來了', catch: '同學，這個我上課講過了，\n你要自己會啊～', colors: ['#5a6378', '#3c4252'],
+    opening: ['同學，你過來一下。', '這個……我上課不是講過了嗎？', '你要自己會啊～'],
+    walk: ['這個上課講過了喔', '同學，你要自己會啊', '回去看講義啦', '我也沒辦法啊～'],
+    wind: ['嗯……這個嘛……', '同學啊……', '你這樣讓我很為難欸'],
+    attack: ['我上課講過了啊～', '你要自己會啊！', '自己回去看講義！', '我也沒辦法啊～', '這個不在我的範圍啦'],
+    hurt: ['唉唷！', '我的痣！！', '我的痣毛！', '同學你哪一班的！'], down: '我…我上課…真的有講過啊……' },
   { key: 'hammer', name: '萊負能', hp: 7, speed: 66, range: 560, score: 10,
     tip: '地上出現紅圈就快閃開！', intro: '「萊負能」扛著大鐵鎚來了', catch: '我要拆系辦！！', colors: ['#5b3f7a', '#3a2850'],
     opening: ['我要拆系辦！！', '你們這個系辦，我拆定了！', '拆你系辦！全部給我拆掉！'],
