@@ -124,7 +124,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
 <div id="banner" hidden></div>
 <div id="over" hidden>
   <div class="card">
-    <h2>被記大過！</h2>
+    <h2>被退學了！</h2>
     <p class="lede" id="overMsg">你被老師們圍毆了。</p>
     <div class="stats"><div><span>這局分數</span><b id="overScore">0</b></div><div><span>最高紀錄</span><b id="overBest">0</b></div></div>
     <button id="again" type="button">再玩一次</button>
@@ -1535,7 +1535,7 @@ function start(data) {
 function gameOver() {
   hero.dead = true; hero.stun = 0; hero.laugh = -1; shake = 20; sfx.hit();
   $('overScore').textContent = score; $('overBest').textContent = best;
-  $('overMsg').textContent = boss ? `你被「${boss.def.name}」打倒了。` : pick(['你被老師們圍毆了。', '主任把你抓去辦公室了。', '你被記滿三支大過。']);
+  $('overMsg').textContent = boss ? `「${boss.def.name}」把你退學了。` : pick(['老師們聯手把你退學了。', '主任把退學單拍在你臉上。', '大過記滿三支，直接退學。']);
   setTimeout(() => { $('over').hidden = false; $('again').focus(); }, 1200);
 }
 function resetGame() {
