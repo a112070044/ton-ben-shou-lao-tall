@@ -24,7 +24,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 
 #hud{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));
-  display:flex;gap:10px;align-items:center;pointer-events:none}
+  display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;pointer-events:none;max-width:calc(100% - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px))}
 .chip{background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:6px 12px 7px;
   box-shadow:0 4px 0 var(--ink);display:flex;align-items:baseline;gap:6px;line-height:1}
 .chip b{font-family:var(--font-display);font-weight:900;font-size:26px;font-variant-numeric:tabular-nums;color:var(--pow)}
@@ -48,7 +48,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 #again:active,.end-btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
 #again:focus-visible,.end-btn:focus-visible{outline:3px solid var(--hero);outline-offset:3px}
 
-#bossBar{position:fixed;left:50%;transform:translateX(-50%);top:calc(66px + env(safe-area-inset-top,0px));
+#bossBar{position:fixed;left:50%;transform:translateX(-50%);top:calc(104px + env(safe-area-inset-top,0px));
   width:min(340px,calc(100vw - 32px));background:var(--board);border:3px solid var(--ink);border-radius:14px;
   box-shadow:0 4px 0 var(--ink);padding:6px 10px 8px;display:grid;gap:5px;pointer-events:none;color:#f2d27a}
 #bossBar .row{display:flex;justify-content:space-between;align-items:baseline;font-weight:900;font-size:15px;letter-spacing:1px}
@@ -156,6 +156,31 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 .howto .keys{margin-top:8px}
 .menu #go{justify-self:center;position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:2}
 #timerChip b{color:var(--ink)}
+#xpChip{flex-basis:100%;max-width:360px;display:flex;align-items:center;gap:8px;padding:4px 10px 5px}
+#xpChip b{font-size:16px;color:#2f6fb0;min-width:3.2em}
+#xpChip .xpbar{flex:1;height:10px;border-radius:6px;background:#e6dcc2;border:2px solid var(--ink);overflow:hidden}
+#xpFill{display:block;height:100%;width:0;background:linear-gradient(90deg,#5ad1ff,#2f8fe0);transition:width .15s}
+#xpChip .sk{font-size:11px;font-weight:700;color:#6b5a3a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
+/* 升級選技能 */
+#lvlup{position:fixed;inset:0;z-index:35;display:grid;place-items:center;padding:16px;background:rgba(20,30,60,.55);touch-action:pan-y;overflow:auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.lv-card{width:min(720px,100%);display:grid;gap:12px;justify-items:center;text-align:center}
+.lv-title{font-family:var(--font-display);font-weight:900;font-size:clamp(40px,10vw,64px);line-height:1;color:#5ad1ff;-webkit-text-stroke:3px var(--ink);
+  paint-order:stroke fill;text-shadow:0 5px 0 var(--ink);transform:rotate(-3deg);animation:mvpIn .45s cubic-bezier(.2,1.6,.4,1) both}
+.lv-title b{color:var(--hero)}
+.lv-sub{color:#fff;font-weight:900;font-size:16px;text-shadow:0 2px 0 #000}
+.lv-opts{display:grid;gap:10px;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+@media (max-width:560px){.lv-opts{grid-template-columns:1fr}}
+.lv-opt{font:inherit;color:var(--ink);background:var(--paper);border:4px solid var(--ink);border-radius:18px;box-shadow:0 6px 0 var(--ink);padding:14px 12px;
+  display:grid;gap:6px;justify-items:center;cursor:pointer;touch-action:manipulation;animation:pop .3s both;-webkit-tap-highlight-color:transparent}
+.lv-opt:nth-child(2){animation-delay:.06s}.lv-opt:nth-child(3){animation-delay:.12s}
+.lv-opt:hover,.lv-opt:focus-visible{background:#fff1b8;outline:3px solid var(--pow);outline-offset:2px}
+.lv-ico{width:52px;height:52px;border-radius:50%;display:grid;place-content:center;font-family:var(--font-display);font-weight:900;font-size:24px;color:#fff;
+  border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink)}
+.lv-opt b{font-size:18px;font-weight:900}
+.lv-opt em{font-style:normal;font-size:12px;font-weight:900;color:var(--pow)}
+.lv-opt small{font-size:13px;line-height:1.45;color:#5a4a30}
+.lv-key{font-size:11px;color:#8a7a5a}
 #timerChip.low b{color:var(--pow)}
 @keyframes wobble{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg) translateY(-3px)}}
 h1{margin:0;font-family:var(--font-display);font-weight:900;font-size:44px;line-height:1.05;letter-spacing:2px;
@@ -217,12 +242,14 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
   <div class="chip"><b id="score">0</b><span>分</span></div>
   <div class="chip best"><span>最高</span><b id="best">0</b></div>
   <div class="chip" id="timerChip" hidden><span>剩</span><b id="timeLeft">60</b><span>秒</span></div>
+  <div class="chip" id="xpChip"><b id="lvNow">Lv 1</b><div class="xpbar"><i id="xpFill"></i></div><span class="sk" id="skList"></span></div>
 </div>
 <div id="bossBar" hidden>
   <div class="row"><span id="bossName">BOSS・聳肩</span><small id="bossTip"></small></div>
   <div class="bar"><i id="bossHp"></i></div>
 </div>
 <div id="banner" hidden></div>
+<div id="lvlup" hidden><div class="lv-card"><div class="lv-title">升級！<b id="lvNum">Lv 2</b></div><div class="lv-sub">選一個技能</div><div class="lv-opts" id="lvOpts"></div></div></div>
 <div id="bossCard" hidden aria-live="polite">
   <div class="bc-top">
     <div class="bc-eyebrow" id="bcEyebrow">BOSS 1</div>
@@ -252,7 +279,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
         <div class="wide"><span>總分</span><b id="endScore">0</b></div>
         <div><span>撞飛人數</span><b id="endKO">0</b></div>
         <div><span>最高連撞</span><b id="endCombo">0</b></div>
-        <div><span>擊敗 Boss</span><b>4 / 4</b></div>
+        <div><span>等級</span><b id="endLv">1</b></div>
         <div><span>大笑次數</span><b id="endUlt">0</b></div>
         <div><span>被打次數</span><b id="endHits">0</b></div>
         <div><span>用時</span><b id="endTime">0:00</b></div>
@@ -597,6 +624,11 @@ function updateHero(dt) {
     hero.atk += dt;
     if (!hero.lunged && hero.atk >= ATK_WIND) {
       hero.lunged = true; hero.bumpT = 0.18;
+      if (skl('quake')) { // 肚皮震波
+        const R = 80 + skl('quake') * 25;
+        for (const o of olds) if (STANDING.includes(o.state)) { const d = Math.hypot(o.x - hero.x, o.y - hero.y); if (d < R && d > 1) knock(o, (o.x - hero.x) / d, (o.y - hero.y) / d, true); }
+        laughRings.push({ x: hero.x, y: hero.y, r: 30, max: R, hits: new Set(), quake: true });
+      }
       hero.vx += hero.dx * 600 * POWER; hero.vy += hero.dy * 600 * POWER;
       puff(hero.x - hero.dx * 20, hero.y, 1.2); puff(hero.x - hero.dx * 26, hero.y + 4, 1);
       sfx.bump();
@@ -620,7 +652,7 @@ function updateHero(dt) {
     const hx = hero.x + hero.dx * 34, hy = hero.y + hero.dy * 22;
     for (const o of olds) {
       if (!STANDING.includes(o.state)) continue;
-      if (Math.hypot(o.x - hx, (o.y - hy) * 1.3) < 62 * POWER) knock(o);
+      if (Math.hypot(o.x - hx, (o.y - hy) * 1.3) < bumpR()) knock(o);
     }
     if (boss && boss.inv <= 0 && bossHittable(boss) && Math.hypot(boss.x - hx, (boss.y - hy) * 1.3) < 84) hitBoss();
   }
@@ -631,7 +663,7 @@ function attack() {
     boss.t = boss.t > rest ? rest : boss.t - INTRO_LINE + .01; return;
   }
   if (!running || hero.cd > 0 || hero.stun > 0 || hero.laugh >= 0 || hero.dead) return;
-  hero.cd = 0.45; hero.atk = 0; hero.lunged = false;
+  hero.cd = 0.45 * (1 - .12 * skl('cd')); hero.atk = 0; hero.lunged = false;
   if (Math.abs(hero.dx) > 0.2) hero.face = hero.dx > 0 ? 1 : -1;
 }
 function collide(b) {
@@ -671,7 +703,7 @@ function spawnOld(near) {
   const [x, y] = near ? freeSpot(260, 650) : freeSpot(480, 1e9);
   return { x, y, vx: 0, vy: 0, r: 15, face: 1, state: 'idle', t: rand(.1, .6), tx: x, ty: y, z: 0, vz: 0, spin: 0, walkT: 0,
     say: null, sayCd: rand(1, 4), alpha: 0, pants: pick(PANTS), bald: Math.random() < .55, bounces: 0, lie: 1,
-    kind: Math.random() < .4 ? 'director' : 'teacher', bouncy: false, atkCd: rand(1, 2.5) };
+    kind: Math.random() < .4 ? 'director' : 'teacher', bouncy: false, atkCd: rand(1, 2.5), hp: gruntHP(), hitCd: 0 };
 }
 function say(o, list, dur = 2.2) { o.say = { text: pick(list), t: dur }; }
 function addScore(n) {
@@ -708,8 +740,133 @@ function updateAlly(dt) {
     if (tgt) {
       const n = Math.hypot(tgt.x - a.x, tgt.y - a.y) || 1;
       talks.push({ x: a.x, y: a.y - 70, vx: (tgt.x - a.x) / n * 460, vy: (tgt.y - a.y) / n * 460, life: 1.4 });
-      a.say = { text: pick(GRANDPA_LINES), t: 1.2 }; a.cd = 2.2; tone(330, 660, .15, 'triangle', .12);
+      a.say = { text: pick(GRANDPA_LINES), t: 1.2 }; a.cd = 2.2 / (1 + .25 * skl('grandpa')); tone(330, 660, .15, 'triangle', .12);
     } else a.cd = .5;
+  }
+}
+// ---------- 經驗值、升級、技能 ----------
+const SKILLS = [
+  { id: 'belly', ico: '肚', color: '#e2412f', name: '大肚腩', desc: lv => `撞擊範圍 +${lv * 20}%` },
+  { id: 'heart', ico: '奶', color: '#c99a6b', name: '珍奶加大', desc: lv => `最多愛心 +${lv}，順便補 1 顆` },
+  { id: 'speed', ico: '腿', color: '#3f9b5a', name: '飛毛腿', desc: lv => `移動速度 +${lv * 8}%` },
+  { id: 'cd', ico: '連', color: '#d38b12', name: '連環撞', desc: lv => `撞擊冷卻 -${lv * 12}%` },
+  { id: 'magnet', ico: '吸', color: '#2f8fe0', name: '吸力肚臍', desc: lv => `撿寶石範圍 +${lv * 50}%` },
+  { id: 'charge', ico: '笑', color: '#ff6f91', name: '笑氣充電', desc: lv => `大笑集氣速度 +${lv * 30}%` },
+  { id: 'quake', ico: '震', color: '#8a5ad1', name: '肚皮震波', desc: lv => `每次撞擊震飛身邊 ${80 + lv * 25} 範圍的人` },
+  { id: 'orbit', ico: '轉', color: '#1b9c8f', name: '迴旋珍奶', desc: lv => `${lv} 杯珍奶繞著你轉，碰到就撞飛` },
+  { id: 'book', ico: '書', color: '#6b5a3a', name: '丟作業本', desc: lv => `每 ${Math.max(.5, 1.7 - lv * .25).toFixed(1)} 秒丟 ${lv >= 3 ? 2 : 1} 本作業本` },
+  { id: 'iron', ico: '鐵', color: '#5a6378', name: '鐵胃', desc: lv => `受傷後無敵時間 +${(lv * .3).toFixed(1)} 秒` },
+  { id: 'grandpa', ico: '爺', color: '#d4a017', name: '爺爺加班', desc: lv => `舌我爺爺說話速度 +${lv * 25}%`, need: () => !!ally },
+];
+const MAX_SK = 5;
+let level = 1, xp = 0, xpNeed = 60, pendingLv = 0, lvOpen = false, orbitA = 0, bookCd = 1;
+let skills = {};
+const gems = [], books = [];
+const skl = id => skills[id] || 0;
+const bumpR = () => 62 * POWER * (1 + .2 * skl('belly'));
+function recomputeStats() { MAXSPD = CHAR.speed * (1 + .08 * skl('speed')); MAX_HP = CHAR.hp + skl('heart'); }
+function dropGems(x, y, n, v) { for (let i = 0; i < n; i++) gems.push({ x: x + rand(-14, 14), y: y + rand(-8, 8), v, vx: rand(-160, 160), vy: rand(-120, 120), t: 0 }); }
+function renderXp() {
+  $('lvNow').textContent = 'Lv ' + level; $('xpFill').style.width = Math.min(100, xp / xpNeed * 100) + '%';
+  $('skList').textContent = SKILLS.filter(k => skl(k.id)).map(k => k.ico + skl(k.id)).join(' ');
+}
+function gainXp(v) {
+  xp += v;
+  while (xp >= xpNeed) { xp -= xpNeed; level++; xpNeed = Math.round(60 + (level - 1) * 32); pendingLv++; }
+  renderXp();
+  if (pendingLv && !lvOpen && !hero.dead) openLevelUp();
+}
+function openLevelUp() {
+  const pool = SKILLS.filter(k => skl(k.id) < MAX_SK && (!k.need || k.need()));
+  if (!pool.length) { pendingLv = 0; healHero(1, hero.x, hero.y - 150); return; }
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  const choices = pool.slice(0, 3);
+  lvOpen = true; running = false; keys.clear(); stick.ix = stick.iy = 0;
+  $('lvNum').textContent = 'Lv ' + (level - pendingLv + 1);
+  const box = $('lvOpts'); box.innerHTML = '';
+  choices.forEach((k, i) => {
+    const lv = skl(k.id) + 1, bt = document.createElement('button'); bt.type = 'button'; bt.className = 'lv-opt';
+    bt.innerHTML = `<span class="lv-ico" style="background:${k.color}">${k.ico}</span><b>${k.name}</b><em>${lv === 1 ? '新技能' : `Lv ${lv - 1} → ${lv}`}</em><small>${k.desc(lv)}</small>` + (isTouch ? '' : `<span class="lv-key">按 ${i + 1}</span>`);
+    bt.addEventListener('click', () => pickSkill(k));
+    box.appendChild(bt);
+  });
+  $('lvlup').hidden = false; tone(520, 1040, .25, 'triangle', .15); setTimeout(() => tone(780, 1560, .3, 'triangle', .12), 120);
+  setTimeout(() => box.firstChild && box.firstChild.focus({ preventScroll: true }), 50);
+}
+function pickSkill(k) {
+  if (!lvOpen) return;
+  skills[k.id] = skl(k.id) + 1; recomputeStats();
+  if (k.id === 'heart') { hero.hp = Math.min(MAX_HP, hero.hp + 1); renderHearts(); }
+  pendingLv--; lvOpen = false; $('lvlup').hidden = true; renderXp();
+  pop(`${k.name} Lv${skl(k.id)}！`, hero.x, hero.y - 150, 1.1);
+  if (pendingLv > 0) openLevelUp(); else { running = true; hero.inv = Math.max(hero.inv, .8); }
+}
+addEventListener('keydown', e => { if (!lvOpen) return; const n = +e.key; const bt = $('lvOpts').children[n - 1]; if (bt) { e.preventDefault(); bt.click(); } });
+function updateSkills(dt) {
+  // 寶石：靠近就被吸過來
+  const pr = 80 * (1 + .5 * skl('magnet'));
+  for (let i = gems.length - 1; i >= 0; i--) {
+    const g = gems[i]; g.t += dt; g.x += g.vx * dt; g.y += g.vy * dt; g.vx *= Math.exp(-5 * dt); g.vy *= Math.exp(-5 * dt);
+    const dx = hero.x - g.x, dy = hero.y - 30 - g.y, d = Math.hypot(dx, dy);
+    if (g.t > .35 && d < pr) { g.x += dx / d * 620 * dt; g.y += dy / d * 620 * dt; }
+    if (d < 34 && g.t > .2) { gems.splice(i, 1); gainXp(g.v); tone(1200 + Math.random() * 300, 1800, .06, 'sine', .05); }
+    else if (g.t > 30) gems.splice(i, 1);
+  }
+  // 迴旋珍奶
+  const no = skl('orbit');
+  if (no) {
+    orbitA += dt * 3.2;
+    for (let i = 0; i < no; i++) {
+      const a = orbitA + i / no * Math.PI * 2, cx = hero.x + Math.cos(a) * 92, cy = hero.y - 40 + Math.sin(a) * 60;
+      for (const o of olds) if (STANDING.includes(o.state) && Math.hypot(o.x - cx, o.y - 40 - cy) < 34) knock(o, Math.cos(a), Math.sin(a), true);
+      if (boss && bossHittable(boss) && boss.inv <= 0 && Math.hypot(boss.x - cx, boss.y - 80 - cy) < 50) hitBoss(Math.cos(a), Math.sin(a), true);
+    }
+  }
+  // 丟作業本
+  const nb = skl('book');
+  if (nb) {
+    bookCd -= dt;
+    if (bookCd <= 0) {
+      bookCd = Math.max(.5, 1.7 - nb * .25);
+      const tg = olds.filter(o => STANDING.includes(o.state)).map(o => [o, Math.hypot(o.x - hero.x, o.y - hero.y)]).filter(p => p[1] < 460).sort((p, q) => p[1] - q[1]);
+      if (boss && bossHittable(boss) && Math.hypot(boss.x - hero.x, boss.y - hero.y) < 460) tg.unshift([boss, 0]);
+      for (const [o] of tg.slice(0, nb >= 3 ? 2 : 1)) {
+        const n = Math.hypot(o.x - hero.x, o.y - hero.y) || 1;
+        books.push({ x: hero.x, y: hero.y - 60, vx: (o.x - hero.x) / n * 560, vy: (o.y - hero.y) / n * 560, life: 1.1, rot: 0 });
+      }
+    }
+  }
+  for (let i = books.length - 1; i >= 0; i--) {
+    const b = books[i]; b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; b.rot += dt * 14;
+    const n = Math.hypot(b.vx, b.vy) || 1; let hitSome = false;
+    for (const o of olds) if (STANDING.includes(o.state) && Math.hypot(o.x - b.x, o.y - 50 - b.y) < 34) { knock(o, b.vx / n, b.vy / n, true); hitSome = true; break; }
+    if (!hitSome && boss && bossHittable(boss) && boss.inv <= 0 && Math.hypot(boss.x - b.x, boss.y - 80 - b.y) < 50) { hitBoss(b.vx / n, b.vy / n, true); hitSome = true; }
+    if (hitSome || b.life <= 0) books.splice(i, 1);
+  }
+}
+function drawGems(time) {
+  for (const g of gems) {
+    const big = g.v > 20, r = big ? 11 : 7, y = g.y - 8 - Math.sin(time * 5 + g.x) * 3;
+    ctx.save(); ctx.translate(g.x, y);
+    ctx.fillStyle = big ? 'rgba(255,213,74,.35)' : 'rgba(90,209,255,.35)'; ell(0, 0, r * 1.8, r * 1.8); ctx.fill();
+    ctx.fillStyle = big ? '#ffd54a' : '#5ad1ff'; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r * .8, 0); ctx.lineTo(0, r); ctx.lineTo(-r * .8, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.moveTo(0, -r * .7); ctx.lineTo(r * .35, -r * .1); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+}
+function drawSkillFx(time) {
+  const no = skl('orbit');
+  for (let i = 0; i < no; i++) {
+    const a = orbitA + i / no * Math.PI * 2, cx = hero.x + Math.cos(a) * 92, cy = hero.y - 40 + Math.sin(a) * 60;
+    drawItem({ x: cx, y: cy + 22, t: 0, life: 99 }, time * 0);
+  }
+  for (const b of books) {
+    ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot);
+    ctx.fillStyle = '#e8d39f'; ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-12, -9, 24, 18, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c0392b'; ctx.fillRect(-12, -9, 5, 18);
+    ctx.fillStyle = INK; ctx.font = '900 8px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('作業', 3, 0);
+    ctx.restore();
   }
 }
 function updateTalks(dt) {
@@ -725,7 +882,13 @@ function updateTalks(dt) {
 }
 
 function knock(o, dirx = hero.dx, diry = hero.dy, fromUlt = false) {
-  dropItem(o.x, o.y);
+  if (o.hitCd > 0) return;
+  if (o.hp > 1) { // 越後面的老師越耐打：還沒到 0 就只會被打退
+    o.hp--; o.hitCd = .3; o.x += dirx * 36; o.y += diry * 26; o.state = 'idle'; o.t = .5; o.vx = o.vy = 0;
+    burst(o.x, o.y - 40); pop('咚！', o.x, o.y - 80, .8); sfx.hit(); if (!fromUlt) { hitStop = .04; gainUlt(4); }
+    return;
+  }
+  dropItem(o.x, o.y); dropGems(o.x, o.y, 1, 10 + 4 * (bossRound - 1));
   o.state = 'fly'; o.bouncy = true;
   o.vx = dirx * 760 + rand(-80, 80); o.vy = diry * 620 + rand(-60, 60); o.vz = 640 + rand(0, 140);
   o.spinV = (dirx >= 0 ? 1 : -1) * rand(12, 18); o.bounces = 0; o.lie = dirx >= 0 ? 1 : -1;
@@ -771,7 +934,7 @@ function updateOld(o, dt) {
     case 'walk': case 'chase': {
       if (o.state === 'chase') { o.tx = hero.x; o.ty = hero.y; }
       const dx = o.tx - o.x, dy = o.ty - o.y, d = Math.hypot(dx, dy);
-      speed = (o.state === 'chase' ? 86 : 52) * STAGE.speed; o.t -= dt;
+      speed = (o.state === 'chase' ? 86 : 52) * STAGE.speed * (1 + .07 * (bossRound - 1)); o.t -= dt;
       if (o.state === 'chase' && d < 64 && o.atkCd <= 0 && !hero.dead && olds.filter(p => p.state === 'windup' || p.state === 'swing').length < 2) { // 靠近了就準備出手（同時最多 2 個人出手）
         o.state = 'windup'; o.t = 0.5; o.face = hero.x > o.x ? 1 : -1; o.vx = o.vy = 0;
         say(o, o.kind === 'director' ? ['給我站住！', '你過來！'] : ['看鞭！', '手伸出來！'], 1);
@@ -803,7 +966,7 @@ function updateOld(o, dt) {
       break;
   }
   if (o.say === null && o.sayCd <= 0 && (o.state === 'chase' || (o.state === 'idle' && dh < 220))) { say(o, LINES[o.kind]); o.sayCd = rand(3, 6); }
-  o.sayCd -= dt; o.atkCd -= dt;
+  o.sayCd -= dt; o.atkCd -= dt; o.hitCd -= dt;
   o.x += o.vx * dt; o.y += o.vy * dt;
   if (Math.abs(o.vx) > 5) o.face = o.vx > 0 ? 1 : -1;
   o.walkT += speed * dt * 0.12;
@@ -853,6 +1016,8 @@ const BOSSES = [
     hurt: ['我是校長欸！', '結束你自己！', '反了反了！'], down: '我要懲罰自己……放暑假……' },
 ];
 let boss = null, nextBossAt = 6, bossIndex = 0, bossRound = 1, bossWait = 0, kos = 0, playT = 0, maxCombo = 0, ultUses = 0, hitsTaken = 0;
+// 小兵要撞幾下：第 2 輪起每輪 +1（最多 4 下）；無盡模式每打倒兩隻 Boss 就再 +1
+const gruntHP = () => 1 + Math.min(3, (bossRound - 1) + (MODE.id === 'endless' ? Math.floor((bossIndex % 4) / 2) : 0));
 const gruntTarget = () => MODE.id === 'bossrush' ? 4 : Math.min(18 + STAGE.extra, 10 + STAGE.extra + bossIndex * 2);
 const waves = [], slams = [], shots = [];
 function showBanner(big, sub, low = false) {
@@ -893,9 +1058,10 @@ function drawBossCardArt(time) {
   ctx = saved;
 }
 function spawnBoss() {
-  const def = BOSSES[bossIndex % BOSSES.length], hp = Math.round(def.hp * (1 + (bossRound - 1) * .5));
+  const def = BOSSES[bossIndex % BOSSES.length], hp = Math.round(def.hp * (1 + (bossRound - 1) * (MODE.id === 'endless' ? .8 : .5)));
+  const rage = 1 + (bossRound - 1) * (MODE.id === 'endless' ? .18 : .1); // 每一輪 Boss 更快、更常出招
   boss = { def, x: CX - 240, y: PLAZA_Y1 + 20, vx: 0, vy: 0, r: 30, hp, maxHp: hp, state: 'intro', t: introTotal(def), inv: 0, pose: 0, walkT: 0,
-    say: null, sayCd: 4, line: -1, face: 1, z: 0, vz: 0, spin: 0, alpha: 0, lie: 1, bounces: 0, bouncy: false, n: 0, ax: 1, ay: 0 };
+    say: null, sayCd: 4, line: -1, rage, face: 1, z: 0, vz: 0, spin: 0, alpha: 0, lie: 1, bounces: 0, bouncy: false, n: 0, ax: 1, ay: 0 };
   $('bossName').textContent = bossLabel(def) + (bossRound > 1 ? `（第 ${bossRound} 輪）` : '');
   $('bossTip').textContent = def.tip; $('bossHp').style.width = '100%';
   showBossCard(def); sfx.boss(); tone(900, 200, .35, 'sawtooth', .08);
@@ -906,7 +1072,7 @@ const inCutscene = () => boss && boss.state === 'intro';
 // 主角受傷：扣血、被打飛、短暫暈眩，之後 1.3 秒無敵（會閃爍）
 function hurtHero(nx, ny, stun = 0.9, power = 720) {
   if (hero.laugh >= 0 || hero.inv > 0 || hero.dead) return false;
-  hero.hp--; hitsTaken++; hero.inv = 1.3; renderHearts(true); hurtFlash = 0.35;
+  hero.hp--; hitsTaken++; hero.inv = 1.3 + .3 * skl('iron'); renderHearts(true); hurtFlash = 0.35;
   hero.vx = nx * power; hero.vy = ny * power * .72; hero.stun = stun; hero.atk = -1; shake = 14;
   pop(stun > .5 ? '暈～' : '痛！', hero.x, hero.y - 140, 1); sfx.land(); tone(400, 120, .25, 'square', .1);
   if (hero.hp <= 0 && ally && !allySaved) { // 爺爺救你一次
@@ -958,7 +1124,7 @@ function hitBoss(dx = hero.dx, dy = hero.dy, fromUlt = false) {
   $('bossHp').style.width = Math.max(0, b.hp / b.maxHp * 100) + '%';
   if (b.hp <= 0) {
     b.state = 'fly'; b.bouncy = true; b.z = 0; b.vx = dx * 900; b.vy = dy * 700; b.vz = 900; b.spinV = (dx >= 0 ? 1 : -1) * 14; b.lie = dx >= 0 ? 1 : -1;
-    b.say = { text: d.down, t: 3 }; addScore(d.score); pop('KO！', b.x, b.y - 120, 1.6); healHero(2, hero.x, hero.y - 150);
+    b.say = { text: d.down, t: 3 }; addScore(d.score); dropGems(b.x, b.y, 6, 40 * bossRound); pop('KO！', b.x, b.y - 120, 1.6); healHero(2, hero.x, hero.y - 150);
     for (let i = 0; i < 3; i++) setTimeout(() => burst(b.x + rand(-40, 40), b.y - b.z - rand(30, 90)), i * 120);
     showBanner(`擊敗「${d.name}」！`, d.key === 'speech' ? `全校終於安靜了　+${d.score} 分` : `+${d.score} 分`);
     shots.length = 0;
@@ -1046,7 +1212,7 @@ function updateBoss(dt) {
       if (b.t <= 0) { b.state = 'walk'; b.t = 1.2; b.say = null; b.pose = 0; $('bossBar').hidden = false; }
       return; }
     case 'walk':
-      speed = d.speed; b.vx = dx / dh * speed; b.vy = dy / dh * speed; b.t -= dt;
+      speed = d.speed * b.rage; b.vx = dx / dh * speed; b.vy = dy / dh * speed; b.t -= dt * b.rage;
       b.pose = Math.max(0, b.pose - dt * 3);
       b.sayCd -= dt; if (!b.say && b.sayCd <= 0) { say(b, d.walk, 1.8); b.sayCd = rand(4, 7); }
       if (b.t <= 0) { if (dh < d.range) startWindup(b); else b.t = 0.8; }
@@ -1116,7 +1282,7 @@ const LAUGH_FPS = 13, LAUGH_FIRST = 4, LAUGH_FRAMES = 59, LAUGH_COLS = 8, LAUGH_
 const LAUGH_DUR = (LAUGH_FRAMES - LAUGH_FIRST) / LAUGH_FPS;
 let ult = 0, camZoom = 1;
 const laughRings = [];
-function gainUlt(n) { ult = Math.min(100, ult + n); updateUltBtn(); }
+function gainUlt(n) { ult = Math.min(100, ult + (n < 100 ? n * (1 + .3 * skl('charge')) : n)); updateUltBtn(); }
 function updateUltBtn() {
   ultBtn.style.setProperty('--p', ult); ultBtn.classList.toggle('ready', ult >= 100);
   $('ultLabel').textContent = ult >= 100 ? (isTouch ? '按我！' : '按 K') : Math.floor(ult) + '%';
@@ -1142,6 +1308,7 @@ function updateLaugh(dt) {
 function updateLaughRings(dt) {
   for (let i = laughRings.length - 1; i >= 0; i--) {
     const w = laughRings[i]; w.r += 620 * dt;
+    if (w.quake) { if (w.r > w.max) laughRings.splice(i, 1); continue; } // 震波只是特效，撞飛已經在撞擊當下處理
     const away = e => { const n = Math.hypot(e.x - w.x, e.y - w.y) || 1; return [(e.x - w.x) / n, (e.y - w.y) / n]; };
     for (const o of olds) {
       if (w.hits.has(o) || !STANDING.includes(o.state)) continue;
@@ -1219,6 +1386,7 @@ function drawLaughRings() {
     ctx.strokeStyle = INK; ctx.lineWidth = 12; ell(w.x, w.y, w.r, w.r * .6); ctx.stroke();
     ctx.strokeStyle = '#ff8fb0'; ctx.lineWidth = 8; ell(w.x, w.y, w.r, w.r * .6); ctx.stroke();
     ctx.font = '900 28px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 6; ctx.lineJoin = 'round';
+    if (w.quake) { ctx.restore(); continue; }
     for (let i = 0; i < 10; i++) {
       const t = i / 10 * 6.28 + w.r * .004, x = w.x + Math.cos(t) * w.r, y = w.y + Math.sin(t) * w.r * .6;
       ctx.strokeStyle = INK; ctx.strokeText('哈', x, y); ctx.fillStyle = '#fff8e6'; ctx.fillText('哈', x, y);
@@ -1352,6 +1520,9 @@ function drawOld(o, time) {
   if (isDir) { ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(8, -59); ctx.quadraticCurveTo(11, -61, 14, -59); ctx.stroke(); }
   else { ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ell(11, -60, 6.5, 3); ctx.fill(); ctx.stroke(); }
   ctx.restore();
+  if (o.hp > 1 && STANDING.includes(o.state)) { // 頭上顯示還要撞幾下
+    for (let i = 0; i < o.hp; i++) { ctx.fillStyle = '#e2412f'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ell(o.x - (o.hp - 1) * 5 + i * 10, o.y - 92, 4, 4); ctx.fill(); ctx.stroke(); }
+  }
   if (o.state === 'down') dizzyStars(o.x + o.lie * 62, o.y - 26, time);
   if (o.state === 'windup') { // 準備打人的警告
     ctx.save(); ctx.translate(o.x + (Math.random() - .5) * 2, o.y - 96); ctx.fillStyle = '#e2412f'; ctx.strokeStyle = INK; ctx.lineWidth = 3;
@@ -1836,7 +2007,7 @@ function frame(now) {
     else {
       if (allyIntro > 0) allyIntro -= dt;
       else if (inCutscene()) updateBoss(dt);
-      else { updateHero(dt); for (const o of olds) updateOld(o, dt); updateBoss(dt); updateAlly(dt); updateTalks(dt); updateWaves(dt); updateLaughRings(dt); updateItems(dt); }
+      else { updateHero(dt); for (const o of olds) updateOld(o, dt); updateBoss(dt); updateAlly(dt); updateTalks(dt); updateSkills(dt); updateWaves(dt); updateLaughRings(dt); updateItems(dt); }
       if (!hero.dead && !inCutscene() && allyIntro <= 0) {
         playT += dt;
         // 下一隻 Boss：撞夠人數，或等太久就自己出來
@@ -1873,6 +2044,7 @@ function frame(now) {
   for (const p of props) if (p.x > x0 && p.x < x1 && p.y > y0 && p.y < y1) list.push(p);
   for (const o of olds) list.push(o);
   for (const it of items) list.push(it);
+  drawGems(time);
   if (boss) list.push(boss);
   if (ally) list.push(ally);
   list.push(hero);
@@ -1894,7 +2066,7 @@ function frame(now) {
     else if (e.type === 'hoop') drawHoop(e);
     else if (e.type === 'statue') drawStatue(e, time);
   }
-  drawShots(time); drawTalks();
+  drawShots(time); drawTalks(); drawSkillFx(time);
   drawFx();
   if (STAGE.id !== 'day') { // 關卡的時段：放學後的夕陽、晚自習的黑暗
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1939,6 +2111,8 @@ function gameOver() {
 }
 function resetGame() {
   score = 0; $('score').textContent = 0; combo = 0; ult = 0; updateUltBtn();
+  level = 1; xp = 0; xpNeed = 60; pendingLv = 0; lvOpen = false; skills = {}; bookCd = 1; gems.length = books.length = 0; $('lvlup').hidden = true;
+  recomputeStats(); renderXp();
   Object.assign(hero, { x: CX, y: PLAZA_Y1 + 60, vx: 0, vy: 0, hp: MAX_HP, inv: 1.5, dead: false, stun: 0, atk: -1, laugh: -1, bumpT: 0, cd: 0 });
   renderHearts();
   hideBossCard();
@@ -1955,7 +2129,7 @@ let mvpOn = false;
 function showEnding() {
   running = false; hero.vx = hero.vy = 0;
   $('endScore').textContent = score; $('endKO').textContent = kos; $('endCombo').textContent = maxCombo;
-  $('endUlt').textContent = ultUses; $('endHits').textContent = hitsTaken;
+  $('endLv').textContent = level; $('endUlt').textContent = ultUses; $('endHits').textContent = hitsTaken;
   $('endTime').textContent = `${Math.floor(playT / 60)}:${String(Math.floor(playT % 60)).padStart(2, '0')}`;
   const [g, t, sub] = hitsTaken <= 2 ? ['S', '完美畢業', '幾乎沒被打到'] : hitsTaken <= 6 ? ['A', '風光畢業', '只被打了幾下'] : hitsTaken <= 12 ? ['B', '順利畢業', '有點狼狽，但撐過去了'] : ['C', '低空飛過', '被打到快退學了'];
   $('endGrade').textContent = g; $('endGradeText').innerHTML = `${t}<small>${sub}</small>`;
@@ -2098,7 +2272,7 @@ function applySelection() {
   CHAR = CHARS.find(c => c.id === sel.char) || CHARS[0];
   STAGE = STAGES.find(c => c.id === sel.stage) || STAGES[0];
   MODE = MODES.find(c => c.id === sel.mode) || MODES[0];
-  MAXSPD = CHAR.speed; MAX_HP = CHAR.hp; POWER = CHAR.power;
+  POWER = CHAR.power; recomputeStats();
   heroSrc = CHAR.hue == null ? heroImg : heroFor(CHAR); buildParts();
   laughSrc = CHAR.hue == null || !laughImg.complete ? laughImg : (laughTints[CHAR.id] || (laughTints[CHAR.id] = tintCanvas(laughImg, CHAR.hue)));
   $('timerChip').hidden = MODE.id !== 'timed';
