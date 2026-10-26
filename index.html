@@ -30,6 +30,23 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 .chip b{font-family:var(--font-display);font-weight:900;font-size:26px;font-variant-numeric:tabular-nums;color:var(--pow)}
 .chip span{font-size:13px;font-weight:700}
 .chip.best b{font-size:18px;color:var(--ink)}
+#hearts{font-size:20px;letter-spacing:1px;line-height:1;color:var(--pow);gap:2px}
+#hearts i{font-style:normal}
+#hearts i.empty{color:#cdbf9f}
+#hearts.hit{animation:shakeX .35s}
+@keyframes shakeX{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+#over{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(59,39,22,.55);
+  padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+#over h2{margin:0;font-family:var(--font-display);font-weight:900;font-size:40px;line-height:1.1;color:var(--pow);
+  -webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink);transform:rotate(-3deg)}
+#over .stats{display:flex;gap:12px;justify-content:center}
+#over .stats div{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 14px;display:grid;gap:2px;min-width:84px}
+#over .stats b{font-family:var(--font-display);font-size:28px;font-weight:900;font-variant-numeric:tabular-nums}
+#over .stats span{font-size:12px;font-weight:700}
+#again{font-family:var(--font-display);font-weight:900;font-size:22px;background:var(--pow);color:#fff;border:4px solid var(--ink);
+  border-radius:16px;padding:10px 32px;box-shadow:0 6px 0 var(--ink);cursor:pointer;letter-spacing:2px}
+#again:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+#again:focus-visible{outline:3px solid var(--hero);outline-offset:3px}
 
 #bossBar{position:fixed;left:50%;transform:translateX(-50%);top:calc(66px + env(safe-area-inset-top,0px));
   width:min(340px,calc(100vw - 32px));background:var(--board);border:3px solid var(--ink);border-radius:14px;
@@ -96,6 +113,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
 <canvas id="game"></canvas>
 
 <div id="hud" hidden>
+  <div class="chip" id="hearts" aria-label="血量"></div>
   <div class="chip"><b id="score">0</b><span>分</span></div>
   <div class="chip best"><span>最高</span><b id="best">0</b></div>
 </div>
@@ -104,6 +122,14 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
   <div class="bar"><i id="bossHp"></i></div>
 </div>
 <div id="banner" hidden></div>
+<div id="over" hidden>
+  <div class="card">
+    <h2>被記大過！</h2>
+    <p class="lede" id="overMsg">你被老師們圍毆了。</p>
+    <div class="stats"><div><span>這局分數</span><b id="overScore">0</b></div><div><span>最高紀錄</span><b id="overBest">0</b></div></div>
+    <button id="again" type="button">再玩一次</button>
+  </div>
+</div>
 
 <div id="stickBase" class="stick" hidden></div>
 <div id="stickKnob" class="stick" hidden></div>
@@ -115,7 +141,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
   <div class="card">
     <img id="startImg" alt="主角">
     <h1>痛扁小老頭</h1>
-    <p class="lede">學校裡的老師和主任整天碎碎念。用你的大肚子把他們撞飛！撞夠多，Boss 會一個個出現：聳肩、負能、撞到牆，最後是校長青山。集滿大招，用「大笑」把全場笑飛！</p>
+    <p class="lede">學校裡的老師和主任整天碎碎念，還會出手打人。你有 5 顆愛心，用大肚子把他們撞飛！撞夠多，Boss 會一個個出現：聳肩、負能、撞到牆，最後是校長青山。集滿大招，用「大笑」把全場笑飛！</p>
     <div class="keys" id="keysPC">
       <div><span>走路</span><span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span></div>
       <div><span>肚子撞</span><span><kbd>空白鍵</kbd> 或 <kbd>J</kbd></span></div>
@@ -362,7 +388,8 @@ const sfx = {
 
 // ---------- 主角 ----------
 const MAXSPD = 330;
-const hero = { x: CX, y: PLAZA_Y1 + 60, vx: 0, vy: 0, face: -1, dx: -1, dy: 0, walkT: 0, bumpT: 0, cd: 0, r: 24, atk: -1, lunged: false, stun: 0, laugh: -1, nextRing: 0, bossDmg: 0, ultKO: 0 };
+const hero = { x: CX, y: PLAZA_Y1 + 60, vx: 0, vy: 0, face: -1, dx: -1, dy: 0, walkT: 0, bumpT: 0, cd: 0, r: 24, atk: -1, lunged: false, stun: 0, laugh: -1, nextRing: 0, bossDmg: 0, ultKO: 0, hp: 5, inv: 0, dead: false };
+const MAX_HP = 5;
 const HERO_H = 118;
 // 攻擊分三段：蓄力（往前縮）→ 挺肚子衝出去 → 收回來
 const ATK_WIND = 0.08, ATK_HOLD = 0.16, ATK_BACK = 0.14, ATK_END = ATK_WIND + ATK_HOLD + ATK_BACK;
@@ -404,6 +431,8 @@ function buildParts() {
 if (heroImg.complete && heroImg.naturalWidth) buildParts(); else heroImg.onload = buildParts;
 
 function updateHero(dt) {
+  hero.inv -= dt;
+  if (hero.dead) { hero.vx *= Math.exp(-5 * dt); hero.vy *= Math.exp(-5 * dt); hero.x += hero.vx * dt; hero.y += hero.vy * dt; collide(hero); return; }
   if (hero.laugh >= 0) { updateLaugh(dt); return; }
   let [ix, iy] = readInput();
   if (hero.stun > 0) { hero.stun -= dt; ix = iy = 0; }
@@ -436,14 +465,14 @@ function updateHero(dt) {
   if (hero.bumpT > 0) {
     const hx = hero.x + hero.dx * 34, hy = hero.y + hero.dy * 22;
     for (const o of olds) {
-      if (!['walk', 'idle', 'flee', 'chase'].includes(o.state)) continue;
+      if (!STANDING.includes(o.state)) continue;
       if (Math.hypot(o.x - hx, (o.y - hy) * 1.3) < 62) knock(o);
     }
     if (boss && boss.inv <= 0 && bossHittable(boss) && Math.hypot(boss.x - hx, (boss.y - hy) * 1.3) < 84) hitBoss();
   }
 }
 function attack() {
-  if (!running || hero.cd > 0 || hero.stun > 0 || hero.laugh >= 0) return;
+  if (!running || hero.cd > 0 || hero.stun > 0 || hero.laugh >= 0 || hero.dead) return;
   hero.cd = 0.45; hero.atk = 0; hero.lunged = false;
   if (Math.abs(hero.dx) > 0.2) hero.face = hero.dx > 0 ? 1 : -1;
 }
@@ -484,14 +513,16 @@ function spawnOld(near) {
   const [x, y] = near ? freeSpot(260, 650) : freeSpot(480, 1e9);
   return { x, y, vx: 0, vy: 0, r: 15, face: 1, state: 'idle', t: rand(.3, 1.5), tx: x, ty: y, z: 0, vz: 0, spin: 0, walkT: 0,
     say: null, sayCd: rand(1, 4), alpha: 0, pants: pick(PANTS), bald: Math.random() < .55, bounces: 0, lie: 1,
-    kind: Math.random() < .4 ? 'director' : 'teacher', bouncy: false };
+    kind: Math.random() < .4 ? 'director' : 'teacher', bouncy: false, atkCd: rand(1, 2.5) };
 }
 function say(o, list, dur = 2.2) { o.say = { text: pick(list), t: dur }; }
 function addScore(n) {
   score += n; $('score').textContent = score;
   if (score > best) { best = score; $('best').textContent = best; try { localStorage.setItem('tbxlt-best', best); } catch (_) {} }
 }
+const STANDING = ['walk', 'idle', 'flee', 'chase', 'windup', 'swing'];
 function knock(o, dirx = hero.dx, diry = hero.dy, fromUlt = false) {
+  dropItem(o.x, o.y);
   o.state = 'fly'; o.bouncy = true;
   o.vx = dirx * 760 + rand(-80, 80); o.vy = diry * 620 + rand(-60, 60); o.vz = 640 + rand(0, 140);
   o.spinV = (dirx >= 0 ? 1 : -1) * rand(12, 18); o.bounces = 0; o.lie = dirx >= 0 ? 1 : -1;
@@ -520,11 +551,30 @@ function updateOld(o, dt) {
         else { o.state = 'walk'; const a = rand(0, 7), d = rand(80, 260); o.tx = clamp(o.x + Math.cos(a) * d, BOUND.x0, BOUND.x1); o.ty = clamp(o.y + Math.sin(a) * d, BOUND.y0, BOUND.y1); o.t = 5; }
       }
       break;
+    case 'windup':
+      o.t -= dt; o.vx = o.vy = 0;
+      if (o.t <= 0) {
+        o.state = 'swing'; o.t = 0.25;
+        const fx = o.x + o.face * 22;
+        if (Math.hypot(hero.x - fx, (hero.y - o.y) * 1.4) < 60) {
+          const n = Math.hypot(hero.x - o.x, hero.y - o.y) || 1;
+          if (hurtHero((hero.x - o.x) / n, (hero.y - o.y) / n, 0.3, 420)) pop(o.kind === 'director' ? '叩！' : '啪！', hero.x, hero.y - 100, 1.1);
+        }
+      }
+      break;
+    case 'swing':
+      o.t -= dt; o.vx = o.vy = 0;
+      if (o.t <= 0) { o.state = 'idle'; o.t = rand(.6, 1.2); o.atkCd = rand(2, 3.2); }
+      break;
     case 'walk': case 'chase': {
       if (o.state === 'chase') { o.tx = hero.x; o.ty = hero.y; }
       const dx = o.tx - o.x, dy = o.ty - o.y, d = Math.hypot(dx, dy);
       speed = o.state === 'chase' ? 78 : 52; o.t -= dt;
-      if ((o.state === 'walk' && d < 10) || o.t <= 0 || (o.state === 'chase' && d < 58)) { o.state = 'idle'; o.t = rand(.8, 2.2); if (dh < 90) o.face = hero.x > o.x ? 1 : -1; }
+      if (o.state === 'chase' && d < 64 && o.atkCd <= 0 && !hero.dead) { // 靠近了就準備出手
+        o.state = 'windup'; o.t = 0.5; o.face = hero.x > o.x ? 1 : -1; o.vx = o.vy = 0;
+        say(o, o.kind === 'director' ? ['給我站住！', '你過來！'] : ['看鞭！', '手伸出來！'], 1);
+      }
+      else if ((o.state === 'walk' && d < 10) || o.t <= 0 || (o.state === 'chase' && d < 58)) { o.state = 'idle'; o.t = rand(.8, 2.2); if (dh < 90) o.face = hero.x > o.x ? 1 : -1; }
       else { o.vx = dx / d * speed; o.vy = dy / d * speed; }
       break; }
     case 'flee': {
@@ -551,7 +601,7 @@ function updateOld(o, dt) {
       break;
   }
   if (o.say === null && o.sayCd <= 0 && (o.state === 'chase' || (o.state === 'idle' && dh < 220))) { say(o, LINES[o.kind]); o.sayCd = rand(3, 6); }
-  o.sayCd -= dt;
+  o.sayCd -= dt; o.atkCd -= dt;
   o.x += o.vx * dt; o.y += o.vy * dt;
   if (Math.abs(o.vx) > 5) o.face = o.vx > 0 ? 1 : -1;
   o.walkT += speed * dt * 0.12;
@@ -606,11 +656,46 @@ function spawnBoss() {
   showBanner(def.key === 'speech' ? '最終 BOSS！' : 'BOSS 出現！', def.intro); sfx.boss();
 }
 const bossHittable = b => !['fly', 'down', 'gone'].includes(b.state) && b.z < 30;
-function stunHero(nx, ny) {
-  if (hero.laugh >= 0 || hero.stun > 0) return false;
-  hero.vx = nx * 720; hero.vy = ny * 520; hero.stun = 0.9; hero.atk = -1; shake = 12;
-  pop('暈～', hero.x, hero.y - 140, 1); sfx.land();
+// 主角受傷：扣血、被打飛、短暫暈眩，之後 1.3 秒無敵（會閃爍）
+function hurtHero(nx, ny, stun = 0.9, power = 720) {
+  if (hero.laugh >= 0 || hero.inv > 0 || hero.dead) return false;
+  hero.hp--; hero.inv = 1.3; renderHearts(true); hurtFlash = 0.35;
+  hero.vx = nx * power; hero.vy = ny * power * .72; hero.stun = stun; hero.atk = -1; shake = 14;
+  pop(stun > .5 ? '暈～' : '痛！', hero.x, hero.y - 140, 1); sfx.land(); tone(400, 120, .25, 'square', .1);
+  if (hero.hp <= 0) gameOver();
   return true;
+}
+const stunHero = (nx, ny) => hurtHero(nx, ny, 0.9, 720);
+function healHero(n, x, y) {
+  const before = hero.hp; hero.hp = Math.min(MAX_HP, hero.hp + n);
+  if (hero.hp > before) { renderHearts(); pop(`+${hero.hp - before} ♥`, x, y, 1.1); tone(600, 1200, .2, 'sine', .15); }
+}
+function renderHearts(hit) {
+  const el = $('hearts'); el.innerHTML = Array.from({ length: MAX_HP }, (_, i) => `<i class="${i < hero.hp ? '' : 'empty'}">♥</i>`).join('');
+  if (hit) { el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); }
+}
+// 補血道具：珍奶
+const items = [];
+function dropItem(x, y) { if (hero.hp < MAX_HP && Math.random() < .18) items.push({ x: x + rand(-20, 20), y: y + rand(-10, 10), t: 0, life: 10 }); }
+function updateItems(dt) {
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i]; it.t += dt;
+    if (Math.hypot(it.x - hero.x, it.y - hero.y) < 44 && !hero.dead) { healHero(1, it.x, it.y - 60); items.splice(i, 1); continue; }
+    if (it.t > it.life) items.splice(i, 1);
+  }
+}
+function drawItem(it, time) {
+  if (it.life - it.t < 2 && Math.floor(time * 8) % 2) return;
+  const y = it.y - 22 - Math.abs(Math.sin(time * 3 + it.x)) * 6;
+  drawShadow(it.x, it.y, 12, 4);
+  ctx.save(); ctx.translate(it.x, y); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+  ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.beginPath(); ctx.moveTo(-11, -16); ctx.lineTo(11, -16); ctx.lineTo(8, 14); ctx.lineTo(-8, 14); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#c99a6b'; ctx.beginPath(); ctx.moveTo(-10, -8); ctx.lineTo(10, -8); ctx.lineTo(8, 14); ctx.lineTo(-8, 14); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#2b1d14'; for (const [x, yy] of [[-5, 10], [0, 11], [5, 10], [-3, 6], [3, 6]]) { ell(x, yy, 2.2, 2.2); ctx.fill(); }
+  ctx.beginPath(); ctx.moveTo(-11, -16); ctx.lineTo(11, -16); ctx.lineTo(8, 14); ctx.lineTo(-8, 14); ctx.closePath(); ctx.stroke();
+  ctx.fillStyle = '#f3b62c'; ctx.beginPath(); ctx.ellipse(0, -16, 12, 3, 0, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = '#e2412f'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(2, -16); ctx.lineTo(6, -30); ctx.stroke();
+  ctx.restore();
 }
 function hitBoss(dx = hero.dx, dy = hero.dy, fromUlt = false) {
   const b = boss, d = b.def, dizzy = b.state === 'dizzy';
@@ -622,7 +707,7 @@ function hitBoss(dx = hero.dx, dy = hero.dy, fromUlt = false) {
   $('bossHp').style.width = Math.max(0, b.hp / b.maxHp * 100) + '%';
   if (b.hp <= 0) {
     b.state = 'fly'; b.bouncy = true; b.z = 0; b.vx = dx * 900; b.vy = dy * 700; b.vz = 900; b.spinV = (dx >= 0 ? 1 : -1) * 14; b.lie = dx >= 0 ? 1 : -1;
-    b.say = { text: d.down, t: 3 }; addScore(d.score); pop('KO！', b.x, b.y - 120, 1.6);
+    b.say = { text: d.down, t: 3 }; addScore(d.score); pop('KO！', b.x, b.y - 120, 1.6); healHero(2, hero.x, hero.y - 150);
     for (let i = 0; i < 3; i++) setTimeout(() => burst(b.x + rand(-40, 40), b.y - b.z - rand(30, 90)), i * 120);
     showBanner(`擊敗「${d.name}」！`, d.key === 'speech' ? `全校終於安靜了　+${d.score} 分` : `+${d.score} 分`);
     shots.length = 0;
@@ -775,7 +860,7 @@ function updateUltBtn() {
   $('ultLabel').textContent = ult >= 100 ? (isTouch ? '按我！' : '按 K') : Math.floor(ult) + '%';
 }
 function ultimate() {
-  if (!running || ult < 100 || hero.laugh >= 0 || !laughImg.complete) return;
+  if (!running || ult < 100 || hero.laugh >= 0 || hero.dead || !laughImg.complete) return;
   ult = 0; updateUltBtn();
   hero.laugh = 0; hero.nextRing = 0.35; hero.bossDmg = 0; hero.ultKO = 0; hero.atk = -1; hero.stun = 0; hero.vx = hero.vy = 0; hero.bumpT = 0;
   showBanner('大招・大笑！', '哈哈哈哈哈哈哈'); playLaugh(); shake = 6;
@@ -797,7 +882,7 @@ function updateLaughRings(dt) {
     const w = laughRings[i]; w.r += 620 * dt;
     const away = e => { const n = Math.hypot(e.x - w.x, e.y - w.y) || 1; return [(e.x - w.x) / n, (e.y - w.y) / n]; };
     for (const o of olds) {
-      if (w.hits.has(o) || !['walk', 'idle', 'flee', 'chase'].includes(o.state)) continue;
+      if (w.hits.has(o) || !STANDING.includes(o.state)) continue;
       if (Math.hypot(o.x - w.x, (o.y - w.y) / .6) < w.r) { w.hits.add(o); knock(o, ...away(o), true); }
     }
     // Boss 一次大招最多扣 3 滴血
@@ -881,6 +966,16 @@ function drawLaughRings() {
 }
 function drawHero(time) {
   if (hero.laugh >= 0) { drawLaugh(time); return; }
+  if (hero.dead) { // 倒在地上
+    drawShadow(hero.x, hero.y + 2, 50, 10);
+    if (!parts.ready) return;
+    const k = HERO_H / heroImg.height;
+    ctx.save(); ctx.translate(hero.x, hero.y - 8); ctx.rotate(hero.face > 0 ? Math.PI / 2 : -Math.PI / 2); ctx.scale(k * (hero.face > 0 ? -1 : 1), k);
+    ctx.drawImage(heroImg, -heroImg.width / 2, -heroImg.height / 2); ctx.restore();
+    dizzyStars(hero.x + (hero.face > 0 ? 50 : -50), hero.y - 30, time, 20);
+    return;
+  }
+  if (hero.inv > 0 && Math.floor(time * 16) % 2) ctx.globalAlpha = .35;
   const sp = clamp(Math.hypot(hero.vx, hero.vy) / MAXSPD, 0, 1);
   const { wind, thrust } = attackPose();
   const stunned = hero.stun > 0;
@@ -919,6 +1014,7 @@ function drawHero(time) {
     ctx.globalAlpha = 1;
   }
   ctx.restore();
+  ctx.globalAlpha = 1;
   if (stunned) dizzyStars(hero.x, hero.y - HERO_H - 4, time, 20);
 }
 
@@ -933,6 +1029,7 @@ function drawOld(o, time) {
   ctx.scale(o.face, 1);
   const moving = o.state === 'walk' || o.state === 'chase' || o.state === 'flee';
   const w = moving ? Math.sin(o.walkT) : 0, bob = moving ? Math.abs(Math.cos(o.walkT)) * 2 : 0;
+  if (o.state === 'windup') ctx.translate((Math.random() - .5) * 2, 0);
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   // 西裝褲 + 皮鞋
   for (const [hx, sw] of [[-5, w], [5, -w]]) {
@@ -957,14 +1054,20 @@ function drawOld(o, time) {
   }
   // 前手 + 道具
   if (isDir) {
-    ctx.fillStyle = '#8a5a2e'; ctx.strokeStyle = INK; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.roundRect(11, -52, 13, 17, 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#fff'; ctx.fillRect(13, -49, 9, 12);
-    ctx.strokeStyle = '#9aa'; ctx.lineWidth = 1; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(14, -46 + i * 3.5); ctx.lineTo(21, -46 + i * 3.5); ctx.stroke(); }
-    limb(6, -53, 14, -41, 5, '#2f3e5c');
+    // 點名板：準備打人時舉高，打下去時往前拍
+    const up = o.state === 'windup', hit = o.state === 'swing';
+    const bx = up ? 4 : hit ? 20 : 11, by = up ? -84 : hit ? -46 : -52;
+    ctx.fillStyle = '#8a5a2e'; ctx.strokeStyle = INK; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.roundRect(bx, by, 13, 17, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.fillRect(bx + 2, by + 3, 9, 12);
+    ctx.strokeStyle = '#9aa'; ctx.lineWidth = 1; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(bx + 3, by + 6 + i * 3.5); ctx.lineTo(bx + 10, by + 6 + i * 3.5); ctx.stroke(); }
+    limb(6, -53, bx + 3, by + 11, 5, '#2f3e5c');
   } else {
+    // 教鞭：準備打人時舉到頭後面，打下去時往前揮
     const wag = o.state === 'chase' ? Math.sin(time * 14) * 5 : 0;
-    ctx.strokeStyle = '#7a4b22'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(15, -40); ctx.lineTo(32, -60 + wag); ctx.stroke();
-    limb(6, -53, 15, -40, 5, SKIN);
+    const up = o.state === 'windup', hit = o.state === 'swing';
+    const hx = up ? 6 : 15, hy = up ? -62 : -40, tx = up ? -8 : hit ? 40 : 32, ty = up ? -92 : hit ? -34 : -60 + wag;
+    ctx.strokeStyle = '#7a4b22'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(tx, ty); ctx.stroke();
+    limb(6, -53, hx, hy, 5, SKIN);
   }
   // 頭
   ctx.fillStyle = SKIN; ctx.strokeStyle = INK; ctx.lineWidth = 2;
@@ -988,6 +1091,10 @@ function drawOld(o, time) {
   else { ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ell(11, -60, 6.5, 3); ctx.fill(); ctx.stroke(); }
   ctx.restore();
   if (o.state === 'down') dizzyStars(o.x + o.lie * 62, o.y - 26, time);
+  if (o.state === 'windup') { // 準備打人的警告
+    ctx.save(); ctx.translate(o.x + (Math.random() - .5) * 2, o.y - 96); ctx.fillStyle = '#e2412f'; ctx.strokeStyle = INK; ctx.lineWidth = 3;
+    ctx.font = '900 26px ' + FONT; ctx.textAlign = 'center'; ctx.strokeText('！', 0, 0); ctx.fillText('！', 0, 0); ctx.restore();
+  }
 }
 
 // ---- Boss 共用的身體零件（正面站，腳底在 0,0）----
@@ -1356,7 +1463,7 @@ function drawFx() {
 
 // ---------- 主迴圈 ----------
 const cam = { x: hero.x, y: hero.y };
-let running = false, score = 0, best = 0, combo = 0, lastHit = -9, shake = 0, hitStop = 0, last = performance.now(), time = 0;
+let running = false, hurtFlash = 0, score = 0, best = 0, combo = 0, lastHit = -9, shake = 0, hitStop = 0, last = performance.now(), time = 0;
 try { best = +localStorage.getItem('tbxlt-best') || 0; } catch (_) {}
 $('best').textContent = best;
 
@@ -1364,7 +1471,7 @@ function frame(now) {
   let dt = Math.min(.033, (now - last) / 1000); last = now; time += dt;
   if (running) {
     if (hitStop > 0) { hitStop -= dt; }
-    else { updateHero(dt); for (const o of olds) updateOld(o, dt); updateBoss(dt); updateWaves(dt); updateLaughRings(dt); }
+    else { updateHero(dt); for (const o of olds) updateOld(o, dt); updateBoss(dt); updateWaves(dt); updateLaughRings(dt); updateItems(dt); }
     updateFx(dt);
   }
   // 鏡頭：跟著主角、稍微看向前方
@@ -1385,12 +1492,14 @@ function frame(now) {
   const list = [];
   for (const p of props) if (p.x > x0 && p.x < x1 && p.y > y0 && p.y < y1) list.push(p);
   for (const o of olds) list.push(o);
+  for (const it of items) list.push(it);
   if (boss) list.push(boss);
   list.push(hero);
   list.sort((a, b) => a.y - b.y);
   for (const e of list) {
     if (e === hero) drawHero(time);
     else if (e === boss) drawBoss(e, time);
+    else if (e.life) drawItem(e, time);
     else if (e.state) drawOld(e, time);
     else if (e.type === 'tree' || e.type === 'bush') {
       // 主角走到樹後面時，樹變半透明
@@ -1410,6 +1519,10 @@ function frame(now) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = `rgba(255,190,70,${.1 + Math.sin(time * 12) * .05})`; ctx.fillRect(0, 0, cvs.width, cvs.height);
   }
+  if (hurtFlash > 0) { // 受傷時畫面閃紅
+    hurtFlash -= dt; ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = `rgba(226,65,47,${hurtFlash * .9})`; ctx.fillRect(0, 0, cvs.width, cvs.height);
+  }
   requestAnimationFrame(frame);
 }
 
@@ -1419,11 +1532,27 @@ function start(data) {
   for (const o of olds) o.alpha = 1;
   requestAnimationFrame(t => { last = t; frame(t); });
 }
+function gameOver() {
+  hero.dead = true; hero.stun = 0; hero.laugh = -1; shake = 20; sfx.hit();
+  $('overScore').textContent = score; $('overBest').textContent = best;
+  $('overMsg').textContent = boss ? `你被「${boss.def.name}」打倒了。` : pick(['你被老師們圍毆了。', '主任把你抓去辦公室了。', '你被記滿三支大過。']);
+  setTimeout(() => { $('over').hidden = false; $('again').focus(); }, 1200);
+}
+function resetGame() {
+  score = 0; $('score').textContent = 0; combo = 0; ult = 0; updateUltBtn();
+  Object.assign(hero, { x: CX, y: PLAZA_Y1 + 60, vx: 0, vy: 0, hp: MAX_HP, inv: 1.5, dead: false, stun: 0, atk: -1, laugh: -1, bumpT: 0, cd: 0 });
+  renderHearts();
+  boss = null; $('bossBar').hidden = true; bossIndex = 0; bossRound = 1; nextBossAt = 8;
+  waves.length = slams.length = shots.length = items.length = laughRings.length = fx.length = 0;
+  olds.length = 0; for (let i = 0; i < 7; i++) { const o = spawnOld(i < 3); o.alpha = 1; olds.push(o); }
+  $('over').hidden = true;
+}
+$('again').addEventListener('click', resetGame);
 $('go').addEventListener('click', () => {
   try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume && AC.resume(); } catch (_) {}
   $('start').hidden = true; $('hud').hidden = false;
   if (isTouch) { bumpBtn.hidden = false; $('stickHint').hidden = false; } else ultBtn.classList.add('pc');
-  ultBtn.hidden = false; updateUltBtn(); loadLaugh();
+  ultBtn.hidden = false; updateUltBtn(); loadLaugh(); renderHearts();
   running = true;
 });
 window.claude?.hot?.snapshot?.(() => ({ score }));
