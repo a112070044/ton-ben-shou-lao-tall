@@ -33,6 +33,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 #hearts{font-size:20px;letter-spacing:1px;line-height:1;color:var(--pow);gap:2px}
 #hearts i{font-style:normal}
 #hearts i.empty{color:#cdbf9f}
+#hearts .hp-num{font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums;margin-left:4px}
 #hearts.hit{animation:shakeX .35s}
 @keyframes shakeX{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
 #over,#ending{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(59,39,22,.55);
@@ -499,7 +500,7 @@ function placeStick(x, y, kx, ky) { sb.style.left = x + 'px'; sb.style.top = y +
 cvs.addEventListener('pointerdown', e => {
   if (e.pointerType === 'mouse' || !running) return;
   e.preventDefault();
-  if (e.clientX < W * 0.6 && stick.id === null) {
+  if (e.clientX < W * 0.6) { // 新手指一律接手搖桿，就算舊的那根「放開」訊號被手機漏掉也不會卡住
     stick.id = e.pointerId; stick.bx = e.clientX; stick.by = e.clientY; stick.ix = stick.iy = 0;
     try { cvs.setPointerCapture(e.pointerId); } catch (_) {}
     placeStick(e.clientX, e.clientY, e.clientX, e.clientY); sb.hidden = sk.hidden = false; $('stickHint').hidden = true;
@@ -516,8 +517,11 @@ cvs.addEventListener('pointermove', e => {
   if (m < 0.12) { stick.ix = stick.iy = 0; } else { const k = clamp((m - 0.12) / 0.88, 0, 1) / m; stick.ix = dx / STICK_R * k; stick.iy = dy / STICK_R * k; }
   placeStick(stick.bx, stick.by, stick.bx + dx, stick.by + dy);
 });
-const endStick = e => { if (e.pointerId !== stick.id) return; stick.id = null; stick.ix = stick.iy = 0; sb.hidden = sk.hidden = true; };
-cvs.addEventListener('pointerup', endStick); cvs.addEventListener('pointercancel', endStick);
+function resetStick() { stick.id = null; stick.ix = stick.iy = 0; sb.hidden = sk.hidden = true; keys.clear(); }
+const endStick = e => { if (e.pointerId === stick.id) resetStick(); };
+for (const t of ['pointerup', 'pointercancel']) { cvs.addEventListener(t, endStick); addEventListener(t, endStick); }
+cvs.addEventListener('lostpointercapture', endStick);
+document.addEventListener('visibilitychange', resetStick);
 const bumpBtn = $('bump');
 bumpBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); bumpBtn.classList.add('on'); attack(); });
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => bumpBtn.addEventListener(t, () => bumpBtn.classList.remove('on')));
@@ -716,6 +720,7 @@ const GRANDPA_LINES = ['我要說話！', '我要說話！！', '讓我說話！
 let ally = null, statueAwake = false, allyIntro = 0, allySaved = false;
 const talks = [];
 function reviveGrandpa() {
+  resetStick();
   statueAwake = true; allyIntro = 3; shake = 16; hero.vx = hero.vy = 0; hero.atk = -1;
   for (let i = 0; i < 3; i++) setTimeout(() => burst(STATUE.x + rand(-30, 30), STATUE.y - rand(40, 110)), i * 150);
   puff(STATUE.x, STATUE.y, 2.4);
@@ -781,7 +786,7 @@ function openLevelUp() {
   if (!pool.length) { pendingLv = 0; healHero(1, hero.x, hero.y - 150); return; }
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   const choices = pool.slice(0, 3);
-  lvOpen = true; running = false; keys.clear(); stick.ix = stick.iy = 0;
+  lvOpen = true; running = false; resetStick();
   $('lvNum').textContent = 'Lv ' + (level - pendingLv + 1);
   const box = $('lvOpts'); box.innerHTML = '';
   choices.forEach((k, i) => {
@@ -1030,6 +1035,7 @@ const INTRO_LINE = 1.5; // 開場白每句的秒數
 const CARD_T = 3.2;     // 登場卡停留秒數
 const introTotal = d => CARD_T + d.opening.length * INTRO_LINE + 0.4;
 function showBossCard(def) {
+  resetStick();
   const card = $('bossCard'), i = bossIndex % BOSSES.length;
   card.style.setProperty('--c1', def.colors[0]); card.style.setProperty('--c2', def.colors[1]);
   $('bcEyebrow').textContent = def.key === 'speech' ? 'FINAL BOSS' : `BOSS ${i + 1}` + (bossRound > 1 ? `・第 ${bossRound} 輪` : '');
@@ -1088,7 +1094,9 @@ function healHero(n, x, y) {
   if (hero.hp > before) { renderHearts(); pop(`+${hero.hp - before} ♥`, x, y, 1.1); tone(600, 1200, .2, 'sine', .15); }
 }
 function renderHearts(hit) {
-  const el = $('hearts'); el.innerHTML = Array.from({ length: MAX_HP }, (_, i) => `<i class="${i < hero.hp ? '' : 'empty'}">♥</i>`).join('');
+  const el = $('hearts');
+  // 愛心太多時改成數字，左上角才不會擠成好幾行
+  el.innerHTML = MAX_HP > 6 ? `<i>♥</i><b class="hp-num">${hero.hp} / ${MAX_HP}</b>` : Array.from({ length: MAX_HP }, (_, i) => `<i class="${i < hero.hp ? '' : 'empty'}">♥</i>`).join('');
   if (hit) { el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); }
 }
 // 補血道具：珍奶
@@ -2103,6 +2111,7 @@ function start(data) {
   requestAnimationFrame(t => { last = t; frame(t); });
 }
 function gameOver() {
+  resetStick();
   hero.dead = true; hero.stun = 0; hero.laugh = -1; shake = 20; sfx.hit();
   $('overTitle').textContent = '被退學了！';
   $('overScore').textContent = score; $('overBest').textContent = best;
@@ -2127,6 +2136,7 @@ $('again').addEventListener('click', resetGame);
 // 打完校長：MVP 結算畫面，主角在舞台上招牌大笑
 let mvpOn = false;
 function showEnding() {
+  resetStick();
   running = false; hero.vx = hero.vy = 0;
   $('endScore').textContent = score; $('endKO').textContent = kos; $('endCombo').textContent = maxCombo;
   $('endLv').textContent = level; $('endUlt').textContent = ultUses; $('endHits').textContent = hitsTaken;
@@ -2195,6 +2205,7 @@ $('endNext').addEventListener('click', () => {
 });
 $('endRestart').addEventListener('click', resetGame);
 function timeUp() {
+  resetStick();
   running = false; hero.vx = hero.vy = 0;
   $('overTitle').textContent = '時間到！';
   $('overScore').textContent = score; $('overBest').textContent = best;
