@@ -215,7 +215,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
       <div class="mvp-sub">打倒校長臣蜻盒，你就是老頭國中的 MVP！</div>
     </div>
     <div class="mvp-stage">
-      <canvas id="mvpArt" width="600" height="700" aria-label="主角在跳舞"></canvas>
+      <canvas id="mvpArt" width="600" height="700" aria-label="主角在大笑"></canvas>
       <div class="mvp-tag">黃色同學</div>
     </div>
     <div class="mvp-panel">
@@ -1736,8 +1736,8 @@ function resetGame() {
   $('over').hidden = true; closeMvp(); running = true;
 }
 $('again').addEventListener('click', resetGame);
-// 打完校長：MVP 結算畫面，主角在舞台上跳舞
-let mvpOn = false, musicStart = 0, musicTimer = null, noiseBuf = null;
+// 打完校長：MVP 結算畫面，主角在舞台上招牌大笑
+let mvpOn = false;
 function showEnding() {
   running = false; hero.vx = hero.vy = 0;
   $('endScore').textContent = score; $('endKO').textContent = kos; $('endCombo').textContent = maxCombo;
@@ -1747,11 +1747,11 @@ function showEnding() {
   $('endGrade').textContent = g; $('endGradeText').innerHTML = `${t}<small>${sub}</small>`;
   setTimeout(() => {
     $('ending').hidden = false; mvpOn = true; $('endNext').focus({ preventScroll: true });
-    startDanceMusic(); makeConfetti();
+    startMvpLaugh(); makeConfetti();
   }, 1100);
 }
 function closeMvp() {
-  $('ending').hidden = true; mvpOn = false; stopDanceMusic();
+  $('ending').hidden = true; mvpOn = false; stopMvpLaugh();
   document.querySelectorAll('.confetti').forEach(c => c.remove());
 }
 function makeConfetti() {
@@ -1764,86 +1764,40 @@ function makeConfetti() {
     $('ending').appendChild(c);
   }
 }
-// 遊戲自己合成的跳舞音樂：120 BPM 的鼓、低音和小旋律
-const BPM = 120, SPB = 60 / BPM;
-function noise() {
-  if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate * .3, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
-  const n = AC.createBufferSource(); n.buffer = noiseBuf; return n;
+// 結算畫面上主角一直招牌大笑，笑聲跟著每一輪重播
+const MVP_LOOP = 4.6; // 一輪大笑的秒數（跟笑聲長度差不多）
+let laughLoop = null, mvpStart = 0;
+function startMvpLaugh() {
+  mvpStart = performance.now() / 1000; playLaugh();
+  clearInterval(laughLoop); laughLoop = setInterval(() => { mvpStart = performance.now() / 1000; playLaugh(); }, MVP_LOOP * 1000);
 }
-function hit(t, f0, f1, dur, type, vol) {
-  const o = AC.createOscillator(), g = AC.createGain(); o.type = type;
-  o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
-  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur);
-}
-function hiss(t, freq, dur, vol, band) {
-  const n = noise(), flt = AC.createBiquadFilter(), g = AC.createGain();
-  flt.type = band ? 'bandpass' : 'highpass'; flt.frequency.value = freq;
-  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
-  n.connect(flt).connect(g).connect(AC.destination); n.start(t); n.stop(t + dur);
-}
-function startDanceMusic() {
-  musicStart = AC ? AC.currentTime + .05 : 0;
-  if (!AC || musicTimer) return;
-  const bass = [55, 55, 82.4, 73.4, 65.4, 65.4, 98, 82.4], lead = [440, 523, 587, 659, 587, 523, 440, 392];
-  let step = 0, next = musicStart;
-  musicTimer = setInterval(() => {
-    while (next < AC.currentTime + .25) {
-      const s = step % 32, t = next;
-      if (s % 4 === 0) hit(t, 150, 40, .18, 'sine', .55);              // 大鼓
-      if (s % 4 === 2) hiss(t, 7000, .05, .12);                          // 腳踏鈸
-      if (s % 8 === 4) hiss(t, 1500, .14, .25, true);                    // 拍手
-      if (s % 2 === 0) hit(t, bass[(s >> 2) % 8], bass[(s >> 2) % 8] * .98, .2, 'triangle', .22); // 低音
-      if (s % 4 === 3 || s % 8 === 1) hit(t, lead[(step >> 1) % 8], lead[(step >> 1) % 8], .12, 'square', .04); // 小旋律
-      next += SPB / 4; step++;
-    }
-  }, 40);
-}
-function stopDanceMusic() { clearInterval(musicTimer); musicTimer = null; }
-
-// 舞步（每 8 拍一輪）：左右甩身體踢腿 → 蹲低彈跳 → 跳起來轉一圈 → 挺肚子擺 pose
-function dancePose(beat) {
-  const b = Math.floor(beat) % 8, f = beat % 1, pulse = Math.sin(f * Math.PI);
-  const P = { rot: 0, legF: 0, legB: 0, liftF: 0, liftB: 0, bob: 0, sx: 1, sy: 1, shift: 0, flip: 1, jump: 0 };
-  if (b < 4) {
-    const dir = b % 2 ? 1 : -1;
-    P.rot = dir * .26 * pulse; P.shift = dir * 10 * pulse; P.bob = pulse * 6;
-    if (dir > 0) { P.legB = -.75 * pulse; P.liftB = 10 * pulse; } else { P.legF = .75 * pulse; P.liftF = 10 * pulse; }
-  } else if (b < 6) {
-    const p2 = Math.abs(Math.sin(f * Math.PI * 2));
-    P.sy = 1 - .14 * p2; P.sx = 1 + .1 * p2; P.legF = .4 * p2; P.legB = -.4 * p2; P.bob = -10 * p2;
-  } else if (b === 6) {
-    P.jump = Math.sin(f * Math.PI) * 60; P.flip = Math.cos(f * Math.PI * 2); P.legF = .45 * pulse; P.legB = -.45 * pulse;
-    P.liftF = P.liftB = 8 * pulse; P.sy = 1 + .06 * pulse;
-  } else {
-    P.rot = .3 * pulse; P.shift = -12 * pulse; P.sx = 1 + .14 * pulse; P.legF = .55 * pulse; P.legB = -.55 * pulse; P.bob = -4 * pulse;
-  }
-  return P;
-}
+function stopMvpLaugh() { clearInterval(laughLoop); laughLoop = null; }
 function drawMvpArt(time) {
-  if (!mvpOn || !parts.ready) return;
-  const c = $('mvpArt'), g = c.getContext('2d');
-  const beat = (AC && musicTimer ? Math.max(0, AC.currentTime - musicStart) : time) / SPB;
-  const P = dancePose(beat), iw = heroImg.width, ih = heroImg.height, k = 470 / ih;
+  if (!mvpOn || !laughImg.complete) return;
+  const c = $('mvpArt'), g = c.getContext('2d'), t = performance.now() / 1000 - mvpStart;
+  const f = LAUGH_FIRST + Math.min(LAUGH_FRAMES - LAUGH_FIRST - 1, Math.floor(t * LAUGH_FPS));
+  const sx = (f % LAUGH_COLS) * LAUGH_FW, sy = Math.floor(f / LAUGH_COLS) * LAUGH_FH;
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height);
   // 舞台聚光燈
   const cx = c.width / 2, fy = c.height - 70;
   const grd = g.createRadialGradient(cx, fy, 10, cx, fy, 260); grd.addColorStop(0, 'rgba(255,240,170,.85)'); grd.addColorStop(1, 'rgba(255,240,170,0)');
   g.fillStyle = grd; g.beginPath(); g.ellipse(cx, fy, 260, 70, 0, 0, 7); g.fill();
   g.fillStyle = 'rgba(255,240,170,.12)'; g.beginPath(); g.moveTo(cx - 60, 0); g.lineTo(cx + 60, 0); g.lineTo(cx + 250, fy); g.lineTo(cx - 250, fy); g.closePath(); g.fill();
-  g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(cx, fy, 90 * (1 - P.jump / 200), 20, 0, 0, 7); g.fill();
-  const saved = ctx; ctx = g;
-  ctx.translate(cx, fy - P.jump); ctx.scale(k * -P.flip, k); ctx.translate(-iw / 2, -ih + 4);
-  drawLeg(parts.legB, HIP_B, P.legB, P.liftB);
-  drawLeg(parts.legF, HIP_F, P.legF, P.liftF);
-  ctx.translate(BODY_PIVOT[0] + P.shift, BODY_PIVOT[1] - P.bob); ctx.rotate(P.rot); ctx.scale(P.sx, P.sy); ctx.translate(-BODY_PIVOT[0], -BODY_PIVOT[1]);
-  ctx.drawImage(parts.body, 0, 0);
-  ctx = saved;
-  // 跟著拍子跳出音符
-  g.setTransform(1, 0, 0, 1, 0, 0); g.font = '900 40px ' + FONT; g.textAlign = 'center';
-  for (let i = 0; i < 3; i++) {
-    const ph = (beat / 2 + i / 3) % 1, x = cx + Math.sin(i * 2.1 + Math.floor(beat / 2 + i / 3)) * 200, y = fy - 120 - ph * 320;
-    g.globalAlpha = Math.sin(ph * Math.PI); g.fillStyle = ['#ffd54a', '#ff8fb0', '#5ff0ff'][i]; g.fillText(['♪', '♫', '♪'][i], x, y);
+  g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(cx, fy, 110, 22, 0, 0, 7); g.fill();
+  // 招牌大笑（笑到發抖）
+  const h = 560, w = h * LAUGH_FW / LAUGH_FH;
+  g.save(); g.translate(cx + Math.sin(time * 40) * 2, fy + 24); g.scale(-1, 1);
+  g.drawImage(laughImg, sx, sy, LAUGH_FW, LAUGH_FH, -w / 2, -h, w, h); g.restore();
+  // 腳邊翻滾的笑氣雲（蓋住影片裁到的腳）
+  for (let i = 0; i < 7; i++) {
+    const a = i / 7 * 6.28 + time * 2.5;
+    g.fillStyle = 'rgba(255,248,230,.95)'; g.beginPath(); g.ellipse(cx + Math.cos(a) * 95, fy + 8 + Math.sin(a) * 14, 46 + Math.sin(time * 7 + i) * 6, 24, 0, 0, 7); g.fill();
+  }
+  // 四周飄出「哈」
+  g.font = '900 46px ' + FONT; g.textAlign = 'center'; g.lineJoin = 'round'; g.lineWidth = 8;
+  for (let i = 0; i < 5; i++) {
+    const ph = (time * .55 + i / 5) % 1, side = i % 2 ? 1 : -1, x = cx + side * (170 + Math.sin(i * 3.1) * 50), y = fy - 140 - ph * 380;
+    g.globalAlpha = Math.sin(ph * Math.PI); g.strokeStyle = INK; g.strokeText('哈', x, y); g.fillStyle = ['#ffd54a', '#ff8fb0', '#5ff0ff', '#fff8e6', '#ffd54a'][i]; g.fillText('哈', x, y);
   }
   g.globalAlpha = 1;
 }
