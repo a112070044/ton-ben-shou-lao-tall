@@ -240,7 +240,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
     <div class="mvp-head">
       <div class="mvp-victory">VICTORY・全校安靜了</div>
       <div class="mvp-title">MVP</div>
-      <div class="mvp-sub">打倒校長臣蜻盒，你就是老頭國中的 MVP！</div>
+      <div class="mvp-sub">打倒校長青山，你就是老頭國中的 MVP！</div>
     </div>
     <div class="mvp-stage">
       <canvas id="mvpArt" width="600" height="700" aria-label="主角在大笑"></canvas>
@@ -355,6 +355,9 @@ solids.push({ x: FLAG.x - 44, y: FLAG.y - 6, r: 26 }, { x: FLAG.x, y: FLAG.y - 6
 for (const [y, up] of [[COURT.y - 8, true], [COURT.y + COURT.h + 34, false]]) {
   props.push({ type: 'hoop', x: COURT.x + COURT.w / 2, y, up }); solids.push({ x: COURT.x + COURT.w / 2, y, r: 9 });
 }
+// 舌我爺爺的銅像（廣場右邊），靠近就會復活
+const STATUE = { x: CX + 400, y: BLD_H + 140 };
+props.push({ type: 'statue', x: STATUE.x, y: STATUE.y }); solids.push({ x: STATUE.x, y: STATUE.y - 6, r: 36 });
 for (const x of [260, 620, 1900, 2200]) { props.push({ type: 'bench', x, y: PLAZA_Y1 - 26 }); solids.push({ x: x - 18, y: PLAZA_Y1 - 26, r: 14 }, { x: x + 18, y: PLAZA_Y1 - 26, r: 14 }); }
 for (let n = 0, tries = 0; n < 60 && tries < 6000; tries++) {
   const x = 110 + R() * (WORLD.w - 220), y = PLAZA_Y1 + 70 + R() * (WORLD.h - PLAZA_Y1 - 150);
@@ -676,6 +679,51 @@ function addScore(n) {
   if (score > best) { best = score; $('best').textContent = best; try { localStorage.setItem(bestKey(), best); } catch (_) {} }
 }
 const STANDING = ['walk', 'idle', 'flee', 'chase', 'windup', 'swing'];
+// ---------- 舌我爺爺：看不下去學校變成這樣，復活幫主角 ----------
+const GRANDPA_LINES = ['我要說話！', '我要說話！！', '讓我說話！', '學校不是這樣辦的！'];
+let ally = null, statueAwake = false, allyIntro = 0, allySaved = false;
+const talks = [];
+function reviveGrandpa() {
+  statueAwake = true; allyIntro = 3; shake = 16; hero.vx = hero.vy = 0; hero.atk = -1;
+  for (let i = 0; i < 3; i++) setTimeout(() => burst(STATUE.x + rand(-30, 30), STATUE.y - rand(40, 110)), i * 150);
+  puff(STATUE.x, STATUE.y, 2.4);
+  ally = { x: STATUE.x, y: STATUE.y + 40, z: 0, face: -1, cd: 1.2, alpha: 1, state: 'ally', say: { text: '我要說話！！', t: 2.8, big: true } };
+  showBanner('舌我爺爺 復活了！', '看不下去學校變成這樣，決定跟你一起對抗老師！', true); sfx.boss();
+}
+function updateAlly(dt) {
+  if (!statueAwake) {
+    if (!hero.dead && Math.hypot(hero.x - STATUE.x, hero.y - STATUE.y) < 140) reviveGrandpa();
+    return;
+  }
+  const a = ally; if (!a) return;
+  if (a.say) { a.say.t -= dt; if (a.say.t <= 0) a.say = null; }
+  // 飄在主角身後
+  const k = 1 - Math.exp(-3 * dt);
+  a.x = lerp(a.x, hero.x - hero.face * 72, k); a.y = lerp(a.y, hero.y - 16, k); a.face = hero.x > a.x ? 1 : -1;
+  a.cd -= dt;
+  if (a.cd <= 0) { // 找最近的敵人，對他大喊「我要說話！」
+    let tgt = null, bd = 430;
+    for (const o of olds) if (STANDING.includes(o.state)) { const d = Math.hypot(o.x - a.x, o.y - a.y); if (d < bd) { bd = d; tgt = o; } }
+    if (boss && bossHittable(boss)) { const d = Math.hypot(boss.x - a.x, boss.y - a.y); if (d < bd) { bd = d; tgt = boss; } }
+    if (tgt) {
+      const n = Math.hypot(tgt.x - a.x, tgt.y - a.y) || 1;
+      talks.push({ x: a.x, y: a.y - 70, vx: (tgt.x - a.x) / n * 460, vy: (tgt.y - a.y) / n * 460, life: 1.4 });
+      a.say = { text: pick(GRANDPA_LINES), t: 1.2 }; a.cd = 2.2; tone(330, 660, .15, 'triangle', .12);
+    } else a.cd = .5;
+  }
+}
+function updateTalks(dt) {
+  for (let i = talks.length - 1; i >= 0; i--) {
+    const t = talks[i]; t.x += t.vx * dt; t.y += t.vy * dt; t.life -= dt;
+    const n = Math.hypot(t.vx, t.vy) || 1, dx = t.vx / n, dy = t.vy / n;
+    let hitSome = false;
+    for (const o of olds) if (STANDING.includes(o.state) && Math.hypot(o.x - t.x, o.y - 50 - t.y) < 40) { knock(o, dx, dy, true); hitSome = true; break; }
+    if (!hitSome && boss && bossHittable(boss) && boss.inv <= 0 && Math.hypot(boss.x - t.x, boss.y - 80 - t.y) < 55) { hitBoss(dx, dy, true); hitSome = true; }
+    if (hitSome) pop('說話！', t.x, t.y - 20, 1);
+    if (hitSome || t.life <= 0) talks.splice(i, 1);
+  }
+}
+
 function knock(o, dirx = hero.dx, diry = hero.dy, fromUlt = false) {
   dropItem(o.x, o.y);
   o.state = 'fly'; o.bouncy = true;
@@ -770,7 +818,7 @@ function updateOld(o, dt) {
   if (o.state !== 'down') { const dx = o.x - hero.x, dy = o.y - hero.y, d = Math.hypot(dx, dy), m = o.r + hero.r; if (d < m && d > .01) { o.x = hero.x + dx / d * m; o.y = hero.y + dy / d * m; } }
 }
 
-// ---------- Boss：聳肩 → 萊負能 → 庄到牆 → 校長臣蜻盒 ----------
+// ---------- Boss：聳肩 → 負能量 → 庄到牆 → 校長青山 ----------
 // opening：出場時的開場白（一句一句講，講完才開打）
 const BOSSES = [
   { key: 'shrug', name: '聳肩', hp: 6, speed: 72, range: 430, score: 10,
@@ -780,8 +828,8 @@ const BOSSES = [
     wind: ['嗯……這個嘛……', '同學啊……', '你這樣讓我很為難欸'],
     attack: ['我上課講過了啊～', '你要自己會啊！', '自己回去看講義！', '我也沒辦法啊～', '這個不在我的範圍啦'],
     hurt: ['唉唷！', '我的痣！！', '我的痣毛！', '同學你哪一班的！'], down: '我…我上課…真的有講過啊……' },
-  { key: 'hammer', name: '萊負能', hp: 7, speed: 66, range: 560, score: 10,
-    tip: '地上出現紅圈就快閃開！', intro: '「萊負能」扛著大鐵鎚來了', catch: '我要拆系辦！！', colors: ['#5b3f7a', '#3a2850'],
+  { key: 'hammer', name: '負能量', hp: 7, speed: 66, range: 560, score: 10,
+    tip: '地上出現紅圈就快閃開！', intro: '「負能量」扛著大鐵鎚來了', catch: '我要拆系辦！！', colors: ['#5b3f7a', '#3a2850'],
     opening: ['我要拆系辦！！', '你們這個系辦，我拆定了！', '拆你系辦！全部給我拆掉！'],
     walk: ['我要拆系辦！', '拆你系辦！', '系辦留著幹嘛？拆！', '反正最後都要拆'],
     wind: ['我要拆系辦！！', '拆你系辦！！', '系辦今天就拆！'],
@@ -795,14 +843,14 @@ const BOSSES = [
     attack: ['AI一條龍！！'],
     wall: ['庄到牆…', '好痛…AI沒算到', '一條龍…又庄到牆了'],
     hurt: ['AI一條龍！', '這不在模型裡！'], down: 'AI…一條……龍……' },
-  { key: 'speech', name: '臣蜻盒', title: '校長', hp: 10, speed: 56, range: 580, score: 20,
-    tip: '躲開「結束」字彈！最終 Boss', intro: '校長「臣蜻盒」親自出馬！', catch: '結束你自己！', colors: ['#b8322a', '#7a1e18'],
-    opening: ['全部給我安靜！', '我是校長臣蜻盒。', '今天，結束你自己！'],
+  { key: 'speech', name: '青山', title: '校長', hp: 10, speed: 56, range: 580, score: 20,
+    tip: '躲開「結束」字彈！最終 Boss', intro: '校長「青山」親自出馬！', catch: '結束你自己！', colors: ['#b8322a', '#7a1e18'],
+    opening: ['全部給我安靜！', '我是校長青山。', '今天，結束你自己！'],
     walk: ['結束你自己', '校長說了算', '升旗典禮還沒結束'],
     wind: ['咳咳，各位同學…', '校長說幾句話'],
     attack: ['結束你自己！', '結束你自己！！'],
     minion: ['校長好！', '遵命！'],
-    hurt: ['我是校長欸！', '結束你自己！', '反了反了！'], down: '結束……我自己……' },
+    hurt: ['我是校長欸！', '結束你自己！', '反了反了！'], down: '我要懲罰自己……放暑假……' },
 ];
 let boss = null, nextBossAt = 6, bossIndex = 0, bossRound = 1, bossWait = 0, kos = 0, playT = 0, maxCombo = 0, ultUses = 0, hitsTaken = 0;
 const gruntTarget = () => MODE.id === 'bossrush' ? 4 : Math.min(18 + STAGE.extra, 10 + STAGE.extra + bossIndex * 2);
@@ -861,6 +909,10 @@ function hurtHero(nx, ny, stun = 0.9, power = 720) {
   hero.hp--; hitsTaken++; hero.inv = 1.3; renderHearts(true); hurtFlash = 0.35;
   hero.vx = nx * power; hero.vy = ny * power * .72; hero.stun = stun; hero.atk = -1; shake = 14;
   pop(stun > .5 ? '暈～' : '痛！', hero.x, hero.y - 140, 1); sfx.land(); tone(400, 120, .25, 'square', .1);
+  if (hero.hp <= 0 && ally && !allySaved) { // 爺爺救你一次
+    allySaved = true; hero.hp = 2; hero.inv = 2.5; renderHearts();
+    ally.say = { text: '我要說話！你還不能倒下！', t: 2.6, big: true }; pop('爺爺救援！', hero.x, hero.y - 170, 1.4); healHero(0, hero.x, hero.y);
+  }
   if (hero.hp <= 0) gameOver();
   return true;
 }
@@ -1434,7 +1486,7 @@ function drawShrug(b, time, w, bob, knocked) {
   if (b.state === 'windup') exclaim(hy - 34);
 }
 
-// 萊負能：頭上一朵烏雲，扛著寫「拆」的大鐵鎚
+// 負能量：頭上一朵烏雲，扛著寫「拆」的大鐵鎚
 function drawHammer(px, py, ang) {
   const L = 92, ex = px + Math.sin(ang) * L, ey = py - Math.cos(ang) * L;
   limb(px - Math.sin(ang) * 10, py + Math.cos(ang) * 10, ex, ey, 6, '#8a5a2e');
@@ -1536,7 +1588,7 @@ function drawWall(b, time, w, bob, knocked, dizzy) {
   if (b.state === 'windup') exclaim(hy - 36);
 }
 
-// 校長臣蜻盒：平頭、紅色「校長」綵帶、拿麥克風
+// 校長青山：平頭、紅色「校長」綵帶、拿麥克風
 function drawPrincipal(b, time, w, bob, knocked) {
   const COAT = '#2a2a35', p = clamp(b.pose, 0, 1);
   const talking = b.state === 'windup' || b.state === 'attack';
@@ -1654,6 +1706,74 @@ function drawFlag(p, time) {
   ctx.fillStyle = INK; ctx.font = '900 26px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('扁', 42, -220 + Math.sin(time * 4 + 3) * 2);
   ctx.restore();
 }
+// 舌我爺爺的銅像：坐在石頭上看書；復活後只剩裂開的石頭
+function drawStatue(p, time) {
+  ctx.save(); ctx.translate(p.x, p.y); drawShadow(0, 4, 60, 14);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.fillStyle = '#8f9496'; ctx.beginPath(); ctx.moveTo(-50, 0); ctx.lineTo(-44, -40); ctx.quadraticCurveTo(0, -52, 44, -40); ctx.lineTo(52, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = 'rgba(59,39,22,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-30, -36); ctx.lineTo(-24, -14); ctx.moveTo(18, -40); ctx.lineTo(26, -10); ctx.stroke();
+  if (statueAwake) { // 裂開、空掉的石頭
+    ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(-6, -46); ctx.lineTo(2, -30); ctx.lineTo(-4, -18); ctx.lineTo(4, -4); ctx.stroke();
+    ctx.restore(); return;
+  }
+  const BR = '#6f8a7c', BR2 = '#58705f', glow = .5 + Math.sin(time * 3) * .5;
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.5;
+  // 坐姿：大腿、小腿、鞋
+  ctx.fillStyle = BR; ctx.beginPath(); ctx.roundRect(-6, -54, 40, 14, 6); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(26, -50, 12, 46, 5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = BR2; ell(36, -4, 12, 5); ctx.fill(); ctx.stroke();
+  // 身體（西裝）
+  ctx.fillStyle = BR; ctx.beginPath(); ctx.moveTo(-18, -50); ctx.quadraticCurveTo(-22, -92, -6, -100); ctx.lineTo(10, -100); ctx.quadraticCurveTo(22, -92, 16, -50); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = BR2; ctx.beginPath(); ctx.moveTo(-4, -100); ctx.lineTo(3, -78); ctx.lineTo(8, -100); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // 攤開的書
+  ctx.fillStyle = '#86a091'; ctx.beginPath(); ctx.moveTo(4, -66); ctx.lineTo(30, -74); ctx.lineTo(32, -58); ctx.lineTo(6, -52); ctx.closePath(); ctx.fill(); ctx.stroke();
+  limb(-8, -94, 10, -62, 7, BR); limb(10, -94, 20, -64, 7, BR);
+  // 頭：光頭、兩側短髮、圓眼鏡，一手托著下巴
+  ctx.fillStyle = BR; ell(2, -116, 14, 15); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.8; ell(-3, -116, 4, 3.5); ctx.stroke(); ell(8, -116, 4, 3.5); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.25)'; ell(-3, -125, 5, 3); ctx.fill();
+  // 提示：靠近看看
+  ctx.globalAlpha = .55 + glow * .45; ctx.fillStyle = '#ffd54a'; ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.font = '900 18px ' + FONT; ctx.textAlign = 'center';
+  ctx.strokeText('靠近看看…', 0, -150 - glow * 4); ctx.fillText('靠近看看…', 0, -150 - glow * 4);
+  ctx.restore();
+}
+// 復活的舌我爺爺：金光閃閃、飄在空中，拿著書
+function drawAlly(a, time) {
+  const fl = 8 + Math.sin(time * 3) * 4;
+  ctx.save(); drawShadow(a.x, a.y + 2, 20, 6, .16);
+  ctx.translate(a.x, a.y - fl); ctx.scale(a.face, 1);
+  const gl = ctx.createRadialGradient(0, -50, 6, 0, -50, 70); gl.addColorStop(0, 'rgba(255,225,120,.55)'); gl.addColorStop(1, 'rgba(255,225,120,0)');
+  ctx.fillStyle = gl; ell(0, -50, 70, 72); ctx.fill();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+  // 腳（飄著，越下面越淡）
+  ctx.globalAlpha = .55; limb(-5, -30, -6, -4, 7, '#4a4e58'); limb(5, -30, 6, -4, 7, '#4a4e58'); ctx.globalAlpha = 1;
+  // 身體：灰西裝、白襯衫、深色領帶
+  ctx.fillStyle = '#6b6f78'; ell(0, -46, 15, 18); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(-5, -63); ctx.lineTo(0, -48); ctx.lineTo(5, -63); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#2b2b33'; ctx.beginPath(); ctx.moveTo(-1.5, -60); ctx.lineTo(1.5, -60); ctx.lineTo(2, -48); ctx.lineTo(0, -45); ctx.lineTo(-2, -48); ctx.closePath(); ctx.fill();
+  // 手拿攤開的書
+  limb(-8, -56, 4, -42, 5, '#6b6f78'); limb(8, -56, 14, -44, 5, '#6b6f78');
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(2, -46); ctx.lineTo(22, -52); ctx.lineTo(24, -38); ctx.lineTo(4, -34); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = '#9aa'; ctx.lineWidth = 1; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(7, -44 + i * 3); ctx.lineTo(20, -48 + i * 3); ctx.stroke(); }
+  // 頭：光頭、兩側白髮、圓眼鏡、慈祥但生氣的眉毛
+  ctx.fillStyle = SKIN; ctx.strokeStyle = INK; ctx.lineWidth = 2; ell(2, -74, 13, 13); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#f4f4f0'; ell(-9, -74, 4, 6); ctx.fill(); ell(-4, -82, 3, 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.6)'; ell(0, -83, 4, 2); ctx.fill();
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.6; ell(4, -74, 4, 3.5); ctx.stroke(); ell(12, -74, 3.5, 3.5); ctx.stroke();
+  ctx.fillStyle = INK; ell(4.5, -74, 1.4, 1.4); ctx.fill(); ell(12, -74, 1.3, 1.3); ctx.fill();
+  ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(0, -80); ctx.lineTo(7, -78); ctx.moveTo(10, -78); ctx.lineTo(15, -80); ctx.stroke();
+  ctx.lineWidth = 2; ctx.beginPath(); if (a.say) ell(9, -66, 3.5, 2.6); else { ctx.moveTo(6, -66); ctx.lineTo(12, -66); } ctx.stroke();
+  ctx.restore();
+}
+function drawTalks() {
+  for (const t of talks) {
+    ctx.save(); ctx.translate(t.x, t.y); ctx.rotate(Math.sin(t.life * 20) * .1);
+    ctx.fillStyle = '#fff8e6'; ctx.strokeStyle = '#d49a12'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.roundRect(-30, -15, 60, 30, 14); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = INK; ctx.font = '900 16px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('說話！', 0, 1);
+    ctx.restore();
+  }
+}
 function drawHoop(p) {
   ctx.save(); ctx.translate(p.x, p.y); drawShadow(0, 2, 14, 5);
   ctx.strokeStyle = INK; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -120); ctx.stroke();
@@ -1714,9 +1834,10 @@ function frame(now) {
   if (running) {
     if (hitStop > 0) { hitStop -= dt; }
     else {
-      if (inCutscene()) updateBoss(dt);
-      else { updateHero(dt); for (const o of olds) updateOld(o, dt); updateBoss(dt); updateWaves(dt); updateLaughRings(dt); updateItems(dt); }
-      if (!hero.dead && !inCutscene()) {
+      if (allyIntro > 0) allyIntro -= dt;
+      else if (inCutscene()) updateBoss(dt);
+      else { updateHero(dt); for (const o of olds) updateOld(o, dt); updateBoss(dt); updateAlly(dt); updateTalks(dt); updateWaves(dt); updateLaughRings(dt); updateItems(dt); }
+      if (!hero.dead && !inCutscene() && allyIntro <= 0) {
         playT += dt;
         // 下一隻 Boss：撞夠人數，或等太久就自己出來
         if (!boss) { bossWait += dt; if (MODE.id === 'bossrush' ? bossWait > 2.5 : (score >= nextBossAt || bossWait > (bossIndex > 0 ? 12 : 30))) spawnBoss(); }
@@ -1735,7 +1856,7 @@ function frame(now) {
   // 鏡頭：跟著主角、稍微看向前方
   camZoom = lerp(camZoom, hero.laugh >= 0 ? 1.22 : 1, 1 - Math.exp(-4 * dt)); // 放大招時鏡頭拉近
   const Z = ZOOM * camZoom, vw = W / Z, vh = H / Z;
-  const focus = inCutscene() ? { x: boss.x, y: boss.y - 90, vx: 0, vy: 0 } : { x: hero.x, y: hero.y - 40, vx: hero.vx, vy: hero.vy };
+  const focus = allyIntro > 0 ? { x: STATUE.x, y: STATUE.y, vx: 0, vy: 0 } : inCutscene() ? { x: boss.x, y: boss.y - 90, vx: 0, vy: 0 } : { x: hero.x, y: hero.y - 40, vx: hero.vx, vy: hero.vy };
   const tx = clamp(focus.x + focus.vx * .22, vw / 2, WORLD.w - vw / 2), ty = clamp(focus.y + focus.vy * .18, vh / 2, WORLD.h - vh / 2);
   const ck = 1 - Math.exp(-6 * dt); cam.x = lerp(cam.x, vw > WORLD.w ? WORLD.w / 2 : tx, ck); cam.y = lerp(cam.y, vh > WORLD.h ? WORLD.h / 2 : ty, ck);
   shake *= Math.exp(-12 * dt);
@@ -1753,11 +1874,13 @@ function frame(now) {
   for (const o of olds) list.push(o);
   for (const it of items) list.push(it);
   if (boss) list.push(boss);
+  if (ally) list.push(ally);
   list.push(hero);
   list.sort((a, b) => a.y - b.y);
   for (const e of list) {
     if (e === hero) drawHero(time);
     else if (e === boss) drawBoss(e, time);
+    else if (e === ally) drawAlly(e, time);
     else if (e.life) drawItem(e, time);
     else if (e.state) drawOld(e, time);
     else if (e.type === 'tree' || e.type === 'bush') {
@@ -1769,8 +1892,9 @@ function frame(now) {
     else if (e.type === 'bench') drawBench(e);
     else if (e.type === 'flag') drawFlag(e, time);
     else if (e.type === 'hoop') drawHoop(e);
+    else if (e.type === 'statue') drawStatue(e, time);
   }
-  drawShots(time);
+  drawShots(time); drawTalks();
   drawFx();
   if (STAGE.id !== 'day') { // 關卡的時段：放學後的夕陽、晚自習的黑暗
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1786,6 +1910,7 @@ function frame(now) {
     ctx.setTransform(S, 0, 0, S, (W / 2 - (cam.x + shx) * Z) * DPR, (H / 2 - (cam.y + shy) * Z) * DPR);
   }
   for (const o of olds) drawBubble(o, o.state === 'down' ? 70 : 112);
+  if (ally) drawBubble(ally, 150);
   if (boss) drawBubble(boss, boss.state === 'down' ? 90 : boss.def.key === 'speech' ? 200 : boss.def.key === 'hammer' ? 230 : 176);
   if (hero.laugh >= 0) { // 大招時整個畫面暖暖地閃
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1818,7 +1943,8 @@ function resetGame() {
   renderHearts();
   hideBossCard();
   boss = null; $('bossBar').hidden = true; bossIndex = 0; bossRound = 1; nextBossAt = 6; bossWait = 0; kos = 0; playT = 0; maxCombo = 0; ultUses = 0; hitsTaken = 0;
-  waves.length = slams.length = shots.length = items.length = laughRings.length = fx.length = 0;
+  waves.length = slams.length = shots.length = items.length = laughRings.length = fx.length = talks.length = 0;
+  ally = null; statueAwake = false; allyIntro = 0; allySaved = false;
   olds.length = 0; for (let i = 0; i < Math.min(10, gruntTarget()); i++) { const o = spawnOld(i < 4); o.alpha = 1; olds.push(o); }
   timeLeft = 60; $('timeLeft').textContent = 60; $('timerChip').classList.remove('low');
   $('over').hidden = true; closeMvp(); running = true;
