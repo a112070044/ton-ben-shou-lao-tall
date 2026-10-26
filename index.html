@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Sans+TC:wght@500;700;900&display=swap">
 <style>
 [hidden]{display:none!important}
 /* 版面：整個畫面就是學校（canvas），上面浮著分數、Boss 血條、搖桿和撞擊鈕 */
@@ -142,18 +142,45 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
   border-radius:16px;padding:10px 36px;box-shadow:0 6px 0 var(--ink);cursor:pointer;letter-spacing:2px}
 #go:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
 #go:focus-visible{outline:3px solid var(--hero);outline-offset:3px}
-#ending{background:rgba(59,39,22,.35);overflow:auto}
-.cert{position:relative;background:#fffaf0;border:6px double #b8892e;box-shadow:0 8px 0 var(--ink),0 0 0 4px var(--ink);max-width:400px}
-.cert-school{font-size:13px;font-weight:700;letter-spacing:4px;color:#8a6a2e}
-.cert h2{margin:0;font-family:var(--font-display);font-weight:900;font-size:40px;letter-spacing:10px;color:#b8892e;-webkit-text-stroke:1.5px var(--ink);paint-order:stroke fill}
-.cert-body{margin:0;font-size:15px;line-height:1.85;text-align:left;max-width:32ch}
-.cert-body b{color:var(--pow)}
-.cert-foot{display:flex;justify-content:space-between;align-items:center;width:100%;font-size:12px;font-weight:700;color:#6b5a3a;gap:8px}
-.seal{width:62px;height:62px;border-radius:50%;border:3px solid #c0392b;color:#c0392b;display:grid;place-content:center;font-weight:900;
-  font-size:14px;line-height:1.1;transform:rotate(-14deg);background:rgba(192,57,43,.06);flex:none}
+/* MVP 結算畫面：舞台聚光燈 + 主角跳舞 + 成績 */
+#over,#ending{z-index:40;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+#ending{background:#1a1230;overflow:hidden auto;place-items:start center;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#ending::before{content:"";position:fixed;inset:-50%;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,213,74,.13) 0 10deg,transparent 10deg 24deg);animation:spin 16s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.mvp{position:relative;z-index:1;width:min(980px,100%);display:grid;gap:10px 28px;grid-template-columns:1fr 1fr;align-items:center;padding-block:12px 20px}
+.mvp-head{grid-column:1/-1;display:grid;justify-items:center;gap:2px;text-align:center}
+.mvp-victory{font-family:var(--font-display);font-weight:900;font-size:clamp(14px,3.4vw,20px);letter-spacing:10px;color:#ffe9a8;text-shadow:0 2px 0 #000}
+.mvp-title{font-family:"Bungee","Noto Sans TC",sans-serif;font-weight:900;font-size:clamp(72px,18vw,150px);line-height:.9;letter-spacing:6px;
+  color:transparent;background:linear-gradient(180deg,#fff6c4 0%,#ffd54a 38%,#e09a12 62%,#ffd54a 100%);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-stroke:4px var(--ink);filter:drop-shadow(0 7px 0 var(--ink)) drop-shadow(0 0 24px rgba(255,200,60,.55));
+  animation:mvpIn .6s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes mvpIn{from{transform:scale(3) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+.mvp-sub{font-weight:900;font-size:clamp(14px,3.6vw,18px);color:#fff;text-shadow:0 2px 0 #000}
+.mvp-stage{position:relative;display:grid;justify-items:center}
+.mvp-stage canvas{width:min(100%,420px);height:auto;aspect-ratio:6/7}
+.mvp-tag{margin-top:-8px;background:var(--hero);color:var(--ink);font-weight:900;font-size:16px;border:3px solid var(--ink);border-radius:999px;padding:3px 16px;box-shadow:0 4px 0 var(--ink)}
+.mvp-panel{background:var(--paper);border:4px solid var(--ink);border-radius:20px;box-shadow:0 8px 0 var(--ink);padding:16px;display:grid;gap:12px;
+  animation:panelIn .5s .3s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes panelIn{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
+.mvp-grade{display:flex;align-items:center;gap:12px;border-bottom:3px dashed rgba(59,39,22,.25);padding-bottom:10px}
+.mvp-grade b{font-family:"Bungee","Noto Sans TC",sans-serif;font-size:58px;line-height:1;width:76px;height:76px;display:grid;place-content:center;border-radius:16px;
+  background:var(--pow);color:#fff;border:4px solid var(--ink);transform:rotate(-6deg);box-shadow:0 5px 0 var(--ink)}
+.mvp-grade span{font-weight:900;font-size:15px;line-height:1.5}
+.mvp-grade small{display:block;font-weight:700;font-size:12px;color:#7a6a4a}
+.mvp-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mvp-stats div{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 10px;display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.mvp-stats span{font-size:12px;font-weight:700;color:#6b5a3a}
+.mvp-stats b{font-family:var(--font-display);font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.mvp-stats .wide{grid-column:1/-1;background:#fff4cf}
+.mvp-stats .wide b{font-size:30px;color:var(--pow)}
+.confetti{position:fixed;z-index:0;top:-20px;width:10px;height:16px;pointer-events:none;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (max-width:700px){.mvp{grid-template-columns:1fr}.mvp-stage canvas{width:min(56vw,250px)}.mvp-title{font-size:clamp(64px,20vw,110px)}}
 .end-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .end-btn.ghost{background:var(--paper);color:var(--ink);font-size:18px}
-@media (prefers-reduced-motion:reduce){.card img,#ult.ready{animation:none}#banner.show{animation:none;transform:translate(-50%,-50%) rotate(-3deg)}}
+@media (prefers-reduced-motion:reduce){.card img,#ult.ready,#ending::before,.confetti{animation:none}#banner.show{animation:none;transform:translate(-50%,-50%) rotate(-3deg)}}
 </style>
 
 <canvas id="game"></canvas>
@@ -181,15 +208,31 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
   <div class="bc-skip" id="bcSkip">按空白鍵跳過</div>
 </div>
 <div id="ending" hidden>
-  <div class="card cert">
-    <div class="cert-school">老頭國民中學</div>
-    <h2>畢業證書</h2>
-    <p class="cert-body">茲證明　<b>黃色同學</b>　在本校撞飛老師與主任共 <b id="endKO">0</b> 人，依序擊敗聳肩、萊負能、庄到牆，最後打倒校長臣蜻盒，全校終於安靜了。<br>特頒此證，准予畢業。</p>
-    <div class="stats"><div><span>總分</span><b id="endScore">0</b></div><div><span>用時</span><b id="endTime">0:00</b></div></div>
-    <div class="cert-foot"><span id="endDate"></span><span class="seal">准予<br>畢業</span></div>
-    <div class="end-row">
-      <button id="endNext" class="end-btn" type="button">挑戰第二輪</button>
-      <button id="endRestart" class="end-btn ghost" type="button">重新開始</button>
+  <div class="mvp">
+    <div class="mvp-head">
+      <div class="mvp-victory">VICTORY・全校安靜了</div>
+      <div class="mvp-title">MVP</div>
+      <div class="mvp-sub">打倒校長臣蜻盒，你就是老頭國中的 MVP！</div>
+    </div>
+    <div class="mvp-stage">
+      <canvas id="mvpArt" width="600" height="700" aria-label="主角在跳舞"></canvas>
+      <div class="mvp-tag">黃色同學</div>
+    </div>
+    <div class="mvp-panel">
+      <div class="mvp-grade"><b id="endGrade">S</b><span id="endGradeText">完美畢業<small>幾乎沒被打到</small></span></div>
+      <div class="mvp-stats">
+        <div class="wide"><span>總分</span><b id="endScore">0</b></div>
+        <div><span>撞飛人數</span><b id="endKO">0</b></div>
+        <div><span>最高連撞</span><b id="endCombo">0</b></div>
+        <div><span>擊敗 Boss</span><b>4 / 4</b></div>
+        <div><span>大笑次數</span><b id="endUlt">0</b></div>
+        <div><span>被打次數</span><b id="endHits">0</b></div>
+        <div><span>用時</span><b id="endTime">0:00</b></div>
+      </div>
+      <div class="end-row">
+        <button id="endNext" class="end-btn" type="button">挑戰第二輪</button>
+        <button id="endRestart" class="end-btn ghost" type="button">重新開始</button>
+      </div>
     </div>
   </div>
 </div>
@@ -609,6 +652,7 @@ function knock(o, dirx = hero.dx, diry = hero.dy, fromUlt = false) {
   else {
     const now = performance.now() / 1000; combo = (now - lastHit < 2.2) ? combo + 1 : 1; lastHit = now;
     hitStop = 0.07; gainUlt(14);
+    maxCombo = Math.max(maxCombo, combo);
     pop(combo > 1 ? `${combo} 連撞！` : pick(['碰！', '咚！', '扁！']), o.x, o.y - 80, combo > 1 ? 1.25 : 1);
   }
   sfx.hit();
@@ -724,7 +768,7 @@ const BOSSES = [
     minion: ['校長好！', '遵命！'],
     hurt: ['我是校長欸！', '結束你自己！', '反了反了！'], down: '結束……我自己……' },
 ];
-let boss = null, nextBossAt = 6, bossIndex = 0, bossRound = 1, bossWait = 0, kos = 0, playT = 0;
+let boss = null, nextBossAt = 6, bossIndex = 0, bossRound = 1, bossWait = 0, kos = 0, playT = 0, maxCombo = 0, ultUses = 0, hitsTaken = 0;
 const gruntTarget = () => Math.min(18, 10 + bossIndex * 2);
 const waves = [], slams = [], shots = [];
 function showBanner(big, sub, low = false) {
@@ -778,7 +822,7 @@ const inCutscene = () => boss && boss.state === 'intro';
 // 主角受傷：扣血、被打飛、短暫暈眩，之後 1.3 秒無敵（會閃爍）
 function hurtHero(nx, ny, stun = 0.9, power = 720) {
   if (hero.laugh >= 0 || hero.inv > 0 || hero.dead) return false;
-  hero.hp--; hero.inv = 1.3; renderHearts(true); hurtFlash = 0.35;
+  hero.hp--; hitsTaken++; hero.inv = 1.3; renderHearts(true); hurtFlash = 0.35;
   hero.vx = nx * power; hero.vy = ny * power * .72; hero.stun = stun; hero.atk = -1; shake = 14;
   pop(stun > .5 ? '暈～' : '痛！', hero.x, hero.y - 140, 1); sfx.land(); tone(400, 120, .25, 'square', .1);
   if (hero.hp <= 0) gameOver();
@@ -991,7 +1035,7 @@ function updateUltBtn() {
 }
 function ultimate() {
   if (!running || ult < 100 || hero.laugh >= 0 || hero.dead || inCutscene() || !laughImg.complete) return;
-  ult = 0; updateUltBtn();
+  ult = 0; updateUltBtn(); ultUses++;
   hero.laugh = 0; hero.nextRing = 0.35; hero.bossDmg = 0; hero.ultKO = 0; hero.atk = -1; hero.stun = 0; hero.vx = hero.vy = 0; hero.bumpT = 0;
   showBanner('大招・大笑！', '哈哈哈哈哈哈哈'); playLaugh(); shake = 6;
 }
@@ -1067,8 +1111,7 @@ function drawLeg(img, hip, ang, lift) {
   ctx.drawImage(img, 0, 0); ctx.restore();
 }
 function drawLaugh(time) {
-  const f = hero.celebrate ? LAUGH_FIRST + Math.floor(time * LAUGH_FPS) % (LAUGH_FRAMES - LAUGH_FIRST)
-    : clamp(LAUGH_FIRST + Math.floor(hero.laugh * LAUGH_FPS), 0, LAUGH_FRAMES - 1);
+  const f = clamp(LAUGH_FIRST + Math.floor(hero.laugh * LAUGH_FPS), 0, LAUGH_FRAMES - 1);
   const sx = (f % LAUGH_COLS) * LAUGH_FW, sy = Math.floor(f / LAUGH_COLS) * LAUGH_FH;
   const h = 152, w = h * LAUGH_FW / LAUGH_FH;
   drawShadow(hero.x, hero.y + 2, 44, 12);
@@ -1096,7 +1139,7 @@ function drawLaughRings() {
   }
 }
 function drawHero(time) {
-  if (hero.laugh >= 0 || hero.celebrate) { drawLaugh(time); return; }
+  if (hero.laugh >= 0) { drawLaugh(time); return; }
   if (hero.dead) { // 倒在地上
     drawShadow(hero.x, hero.y + 2, 50, 10);
     if (!parts.ready) return;
@@ -1662,7 +1705,7 @@ function frame(now) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = `rgba(255,190,70,${.1 + Math.sin(time * 12) * .05})`; ctx.fillRect(0, 0, cvs.width, cvs.height);
   }
-  drawBossCardArt(time);
+  drawBossCardArt(time); drawMvpArt(time);
   if (hurtFlash > 0) { // 受傷時畫面閃紅
     hurtFlash -= dt; ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = `rgba(226,65,47,${hurtFlash * .9})`; ctx.fillRect(0, 0, cvs.width, cvs.height);
@@ -1687,23 +1730,125 @@ function resetGame() {
   Object.assign(hero, { x: CX, y: PLAZA_Y1 + 60, vx: 0, vy: 0, hp: MAX_HP, inv: 1.5, dead: false, stun: 0, atk: -1, laugh: -1, bumpT: 0, cd: 0 });
   renderHearts();
   hideBossCard();
-  boss = null; $('bossBar').hidden = true; bossIndex = 0; bossRound = 1; nextBossAt = 6; bossWait = 0; kos = 0; playT = 0;
+  boss = null; $('bossBar').hidden = true; bossIndex = 0; bossRound = 1; nextBossAt = 6; bossWait = 0; kos = 0; playT = 0; maxCombo = 0; ultUses = 0; hitsTaken = 0;
   waves.length = slams.length = shots.length = items.length = laughRings.length = fx.length = 0;
   olds.length = 0; for (let i = 0; i < 10; i++) { const o = spawnOld(i < 4); o.alpha = 1; olds.push(o); }
-  $('over').hidden = true; $('ending').hidden = true; hero.celebrate = false; running = true;
+  $('over').hidden = true; closeMvp(); running = true;
 }
 $('again').addEventListener('click', resetGame);
-// 打完校長：結局畫面（畢業證書），主角在後面一直大笑
+// 打完校長：MVP 結算畫面，主角在舞台上跳舞
+let mvpOn = false, musicStart = 0, musicTimer = null, noiseBuf = null;
 function showEnding() {
-  running = false; hero.celebrate = true; hero.vx = hero.vy = 0; playLaugh();
-  const now = new Date();
-  $('endKO').textContent = kos; $('endScore').textContent = score;
+  running = false; hero.vx = hero.vy = 0;
+  $('endScore').textContent = score; $('endKO').textContent = kos; $('endCombo').textContent = maxCombo;
+  $('endUlt').textContent = ultUses; $('endHits').textContent = hitsTaken;
   $('endTime').textContent = `${Math.floor(playT / 60)}:${String(Math.floor(playT % 60)).padStart(2, '0')}`;
-  $('endDate').textContent = `中華民國 ${now.getFullYear() - 1911} 年 ${now.getMonth() + 1} 月 ${now.getDate()} 日`;
-  setTimeout(() => { $('ending').hidden = false; $('endNext').focus(); }, 900);
+  const [g, t, sub] = hitsTaken <= 2 ? ['S', '完美畢業', '幾乎沒被打到'] : hitsTaken <= 6 ? ['A', '風光畢業', '只被打了幾下'] : hitsTaken <= 12 ? ['B', '順利畢業', '有點狼狽，但撐過去了'] : ['C', '低空飛過', '被打到快退學了'];
+  $('endGrade').textContent = g; $('endGradeText').innerHTML = `${t}<small>${sub}</small>`;
+  setTimeout(() => {
+    $('ending').hidden = false; mvpOn = true; $('endNext').focus({ preventScroll: true });
+    startDanceMusic(); makeConfetti();
+  }, 1100);
+}
+function closeMvp() {
+  $('ending').hidden = true; mvpOn = false; stopDanceMusic();
+  document.querySelectorAll('.confetti').forEach(c => c.remove());
+}
+function makeConfetti() {
+  const colors = ['#ffd54a', '#e2412f', '#5ff0ff', '#ff8fb0', '#7cc456', '#fff'];
+  for (let i = 0; i < 46; i++) {
+    const c = document.createElement('i'); c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw'; c.style.background = colors[i % colors.length];
+    c.style.animationDuration = (2.6 + Math.random() * 2.6) + 's'; c.style.animationDelay = (-Math.random() * 5) + 's';
+    c.style.width = (6 + Math.random() * 8) + 'px'; c.style.borderRadius = Math.random() < .3 ? '50%' : '2px';
+    $('ending').appendChild(c);
+  }
+}
+// 遊戲自己合成的跳舞音樂：120 BPM 的鼓、低音和小旋律
+const BPM = 120, SPB = 60 / BPM;
+function noise() {
+  if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate * .3, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const n = AC.createBufferSource(); n.buffer = noiseBuf; return n;
+}
+function hit(t, f0, f1, dur, type, vol) {
+  const o = AC.createOscillator(), g = AC.createGain(); o.type = type;
+  o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur);
+}
+function hiss(t, freq, dur, vol, band) {
+  const n = noise(), flt = AC.createBiquadFilter(), g = AC.createGain();
+  flt.type = band ? 'bandpass' : 'highpass'; flt.frequency.value = freq;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  n.connect(flt).connect(g).connect(AC.destination); n.start(t); n.stop(t + dur);
+}
+function startDanceMusic() {
+  musicStart = AC ? AC.currentTime + .05 : 0;
+  if (!AC || musicTimer) return;
+  const bass = [55, 55, 82.4, 73.4, 65.4, 65.4, 98, 82.4], lead = [440, 523, 587, 659, 587, 523, 440, 392];
+  let step = 0, next = musicStart;
+  musicTimer = setInterval(() => {
+    while (next < AC.currentTime + .25) {
+      const s = step % 32, t = next;
+      if (s % 4 === 0) hit(t, 150, 40, .18, 'sine', .55);              // 大鼓
+      if (s % 4 === 2) hiss(t, 7000, .05, .12);                          // 腳踏鈸
+      if (s % 8 === 4) hiss(t, 1500, .14, .25, true);                    // 拍手
+      if (s % 2 === 0) hit(t, bass[(s >> 2) % 8], bass[(s >> 2) % 8] * .98, .2, 'triangle', .22); // 低音
+      if (s % 4 === 3 || s % 8 === 1) hit(t, lead[(step >> 1) % 8], lead[(step >> 1) % 8], .12, 'square', .04); // 小旋律
+      next += SPB / 4; step++;
+    }
+  }, 40);
+}
+function stopDanceMusic() { clearInterval(musicTimer); musicTimer = null; }
+
+// 舞步（每 8 拍一輪）：左右甩身體踢腿 → 蹲低彈跳 → 跳起來轉一圈 → 挺肚子擺 pose
+function dancePose(beat) {
+  const b = Math.floor(beat) % 8, f = beat % 1, pulse = Math.sin(f * Math.PI);
+  const P = { rot: 0, legF: 0, legB: 0, liftF: 0, liftB: 0, bob: 0, sx: 1, sy: 1, shift: 0, flip: 1, jump: 0 };
+  if (b < 4) {
+    const dir = b % 2 ? 1 : -1;
+    P.rot = dir * .26 * pulse; P.shift = dir * 10 * pulse; P.bob = pulse * 6;
+    if (dir > 0) { P.legB = -.75 * pulse; P.liftB = 10 * pulse; } else { P.legF = .75 * pulse; P.liftF = 10 * pulse; }
+  } else if (b < 6) {
+    const p2 = Math.abs(Math.sin(f * Math.PI * 2));
+    P.sy = 1 - .14 * p2; P.sx = 1 + .1 * p2; P.legF = .4 * p2; P.legB = -.4 * p2; P.bob = -10 * p2;
+  } else if (b === 6) {
+    P.jump = Math.sin(f * Math.PI) * 60; P.flip = Math.cos(f * Math.PI * 2); P.legF = .45 * pulse; P.legB = -.45 * pulse;
+    P.liftF = P.liftB = 8 * pulse; P.sy = 1 + .06 * pulse;
+  } else {
+    P.rot = .3 * pulse; P.shift = -12 * pulse; P.sx = 1 + .14 * pulse; P.legF = .55 * pulse; P.legB = -.55 * pulse; P.bob = -4 * pulse;
+  }
+  return P;
+}
+function drawMvpArt(time) {
+  if (!mvpOn || !parts.ready) return;
+  const c = $('mvpArt'), g = c.getContext('2d');
+  const beat = (AC && musicTimer ? Math.max(0, AC.currentTime - musicStart) : time) / SPB;
+  const P = dancePose(beat), iw = heroImg.width, ih = heroImg.height, k = 470 / ih;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height);
+  // 舞台聚光燈
+  const cx = c.width / 2, fy = c.height - 70;
+  const grd = g.createRadialGradient(cx, fy, 10, cx, fy, 260); grd.addColorStop(0, 'rgba(255,240,170,.85)'); grd.addColorStop(1, 'rgba(255,240,170,0)');
+  g.fillStyle = grd; g.beginPath(); g.ellipse(cx, fy, 260, 70, 0, 0, 7); g.fill();
+  g.fillStyle = 'rgba(255,240,170,.12)'; g.beginPath(); g.moveTo(cx - 60, 0); g.lineTo(cx + 60, 0); g.lineTo(cx + 250, fy); g.lineTo(cx - 250, fy); g.closePath(); g.fill();
+  g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(cx, fy, 90 * (1 - P.jump / 200), 20, 0, 0, 7); g.fill();
+  const saved = ctx; ctx = g;
+  ctx.translate(cx, fy - P.jump); ctx.scale(k * -P.flip, k); ctx.translate(-iw / 2, -ih + 4);
+  drawLeg(parts.legB, HIP_B, P.legB, P.liftB);
+  drawLeg(parts.legF, HIP_F, P.legF, P.liftF);
+  ctx.translate(BODY_PIVOT[0] + P.shift, BODY_PIVOT[1] - P.bob); ctx.rotate(P.rot); ctx.scale(P.sx, P.sy); ctx.translate(-BODY_PIVOT[0], -BODY_PIVOT[1]);
+  ctx.drawImage(parts.body, 0, 0);
+  ctx = saved;
+  // 跟著拍子跳出音符
+  g.setTransform(1, 0, 0, 1, 0, 0); g.font = '900 40px ' + FONT; g.textAlign = 'center';
+  for (let i = 0; i < 3; i++) {
+    const ph = (beat / 2 + i / 3) % 1, x = cx + Math.sin(i * 2.1 + Math.floor(beat / 2 + i / 3)) * 200, y = fy - 120 - ph * 320;
+    g.globalAlpha = Math.sin(ph * Math.PI); g.fillStyle = ['#ffd54a', '#ff8fb0', '#5ff0ff'][i]; g.fillText(['♪', '♫', '♪'][i], x, y);
+  }
+  g.globalAlpha = 1;
 }
 $('endNext').addEventListener('click', () => {
-  $('ending').hidden = true; hero.celebrate = false; hero.inv = 1.5; healHero(MAX_HP, hero.x, hero.y - 150);
+  closeMvp(); hero.inv = 1.5; healHero(MAX_HP, hero.x, hero.y - 150);
   showBanner('第二輪開始！', 'Boss 血量變多了'); running = true;
 });
 $('endRestart').addEventListener('click', resetGame);
