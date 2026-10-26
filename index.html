@@ -35,18 +35,18 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 #hearts i.empty{color:#cdbf9f}
 #hearts.hit{animation:shakeX .35s}
 @keyframes shakeX{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
-#over{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(59,39,22,.55);
+#over,#ending{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(59,39,22,.55);
   padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 #over h2{margin:0;font-family:var(--font-display);font-weight:900;font-size:40px;line-height:1.1;color:var(--pow);
   -webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink);transform:rotate(-3deg)}
-#over .stats{display:flex;gap:12px;justify-content:center}
-#over .stats div{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 14px;display:grid;gap:2px;min-width:84px}
-#over .stats b{font-family:var(--font-display);font-size:28px;font-weight:900;font-variant-numeric:tabular-nums}
-#over .stats span{font-size:12px;font-weight:700}
-#again{font-family:var(--font-display);font-weight:900;font-size:22px;background:var(--pow);color:#fff;border:4px solid var(--ink);
+#over .stats,#ending .stats{display:flex;gap:12px;justify-content:center}
+#over .stats div,#ending .stats div{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 14px;display:grid;gap:2px;min-width:84px}
+#over .stats b,#ending .stats b{font-family:var(--font-display);font-size:28px;font-weight:900;font-variant-numeric:tabular-nums}
+#over .stats span,#ending .stats span{font-size:12px;font-weight:700}
+#again,.end-btn{font-family:var(--font-display);font-weight:900;font-size:22px;background:var(--pow);color:#fff;border:4px solid var(--ink);
   border-radius:16px;padding:10px 32px;box-shadow:0 6px 0 var(--ink);cursor:pointer;letter-spacing:2px}
-#again:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
-#again:focus-visible{outline:3px solid var(--hero);outline-offset:3px}
+#again:active,.end-btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+#again:focus-visible,.end-btn:focus-visible{outline:3px solid var(--hero);outline-offset:3px}
 
 #bossBar{position:fixed;left:50%;transform:translateX(-50%);top:calc(66px + env(safe-area-inset-top,0px));
   width:min(340px,calc(100vw - 32px));background:var(--board);border:3px solid var(--ink);border-radius:14px;
@@ -107,6 +107,17 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
   border-radius:16px;padding:10px 36px;box-shadow:0 6px 0 var(--ink);cursor:pointer;letter-spacing:2px}
 #go:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
 #go:focus-visible{outline:3px solid var(--hero);outline-offset:3px}
+#ending{background:rgba(59,39,22,.35);overflow:auto}
+.cert{position:relative;background:#fffaf0;border:6px double #b8892e;box-shadow:0 8px 0 var(--ink),0 0 0 4px var(--ink);max-width:400px}
+.cert-school{font-size:13px;font-weight:700;letter-spacing:4px;color:#8a6a2e}
+.cert h2{margin:0;font-family:var(--font-display);font-weight:900;font-size:40px;letter-spacing:10px;color:#b8892e;-webkit-text-stroke:1.5px var(--ink);paint-order:stroke fill}
+.cert-body{margin:0;font-size:15px;line-height:1.85;text-align:left;max-width:32ch}
+.cert-body b{color:var(--pow)}
+.cert-foot{display:flex;justify-content:space-between;align-items:center;width:100%;font-size:12px;font-weight:700;color:#6b5a3a;gap:8px}
+.seal{width:62px;height:62px;border-radius:50%;border:3px solid #c0392b;color:#c0392b;display:grid;place-content:center;font-weight:900;
+  font-size:14px;line-height:1.1;transform:rotate(-14deg);background:rgba(192,57,43,.06);flex:none}
+.end-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.end-btn.ghost{background:var(--paper);color:var(--ink);font-size:18px}
 @media (prefers-reduced-motion:reduce){.card img,#ult.ready{animation:none}#banner.show{animation:none;transform:translate(-50%,-50%) rotate(-3deg)}}
 </style>
 
@@ -122,6 +133,19 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
   <div class="bar"><i id="bossHp"></i></div>
 </div>
 <div id="banner" hidden></div>
+<div id="ending" hidden>
+  <div class="card cert">
+    <div class="cert-school">老頭國民中學</div>
+    <h2>畢業證書</h2>
+    <p class="cert-body">茲證明　<b>黃色同學</b>　在本校撞飛老師與主任共 <b id="endKO">0</b> 人，依序擊敗聳肩、負能、撞到牆，最後打倒校長青山，全校終於安靜了。<br>特頒此證，准予畢業。</p>
+    <div class="stats"><div><span>總分</span><b id="endScore">0</b></div><div><span>用時</span><b id="endTime">0:00</b></div></div>
+    <div class="cert-foot"><span id="endDate"></span><span class="seal">准予<br>畢業</span></div>
+    <div class="end-row">
+      <button id="endNext" class="end-btn" type="button">挑戰第二輪</button>
+      <button id="endRestart" class="end-btn ghost" type="button">重新開始</button>
+    </div>
+  </div>
+</div>
 <div id="over" hidden>
   <div class="card">
     <h2>被退學了！</h2>
@@ -511,7 +535,7 @@ function freeSpot(minHero, maxHero) {
 }
 function spawnOld(near) {
   const [x, y] = near ? freeSpot(260, 650) : freeSpot(480, 1e9);
-  return { x, y, vx: 0, vy: 0, r: 15, face: 1, state: 'idle', t: rand(.3, 1.5), tx: x, ty: y, z: 0, vz: 0, spin: 0, walkT: 0,
+  return { x, y, vx: 0, vy: 0, r: 15, face: 1, state: 'idle', t: rand(.1, .6), tx: x, ty: y, z: 0, vz: 0, spin: 0, walkT: 0,
     say: null, sayCd: rand(1, 4), alpha: 0, pants: pick(PANTS), bald: Math.random() < .55, bounces: 0, lie: 1,
     kind: Math.random() < .4 ? 'director' : 'teacher', bouncy: false, atkCd: rand(1, 2.5) };
 }
@@ -527,7 +551,7 @@ function knock(o, dirx = hero.dx, diry = hero.dy, fromUlt = false) {
   o.vx = dirx * 760 + rand(-80, 80); o.vy = diry * 620 + rand(-60, 60); o.vz = 640 + rand(0, 140);
   o.spinV = (dirx >= 0 ? 1 : -1) * rand(12, 18); o.bounces = 0; o.lie = dirx >= 0 ? 1 : -1;
   say(o, OUCH, 1.8);
-  addScore(1);
+  addScore(1); kos++;
   shake = 10; burst(o.x, o.y - 40);
   if (fromUlt) hero.ultKO++;
   else {
@@ -536,7 +560,6 @@ function knock(o, dirx = hero.dx, diry = hero.dy, fromUlt = false) {
     pop(combo > 1 ? `${combo} 連撞！` : pick(['碰！', '咚！', '扁！']), o.x, o.y - 80, combo > 1 ? 1.25 : 1);
   }
   sfx.hit();
-  if (!boss && score >= nextBossAt) spawnBoss();
 }
 function updateOld(o, dt) {
   o.alpha = Math.min(1, o.alpha + dt * 2);
@@ -547,8 +570,7 @@ function updateOld(o, dt) {
     case 'idle':
       o.t -= dt; o.vx = o.vy = 0;
       if (o.t <= 0) {
-        if (dh < 420 && Math.random() < .6) { o.state = 'chase'; o.t = rand(3, 5); }
-        else { o.state = 'walk'; const a = rand(0, 7), d = rand(80, 260); o.tx = clamp(o.x + Math.cos(a) * d, BOUND.x0, BOUND.x1); o.ty = clamp(o.y + Math.sin(a) * d, BOUND.y0, BOUND.y1); o.t = 5; }
+        o.state = 'chase'; o.t = 99; // 不再亂逛，一律朝主角走
       }
       break;
     case 'windup':
@@ -569,12 +591,12 @@ function updateOld(o, dt) {
     case 'walk': case 'chase': {
       if (o.state === 'chase') { o.tx = hero.x; o.ty = hero.y; }
       const dx = o.tx - o.x, dy = o.ty - o.y, d = Math.hypot(dx, dy);
-      speed = o.state === 'chase' ? 78 : 52; o.t -= dt;
-      if (o.state === 'chase' && d < 64 && o.atkCd <= 0 && !hero.dead) { // 靠近了就準備出手
+      speed = o.state === 'chase' ? 86 : 52; o.t -= dt;
+      if (o.state === 'chase' && d < 64 && o.atkCd <= 0 && !hero.dead && olds.filter(p => p.state === 'windup' || p.state === 'swing').length < 2) { // 靠近了就準備出手（同時最多 2 個人出手）
         o.state = 'windup'; o.t = 0.5; o.face = hero.x > o.x ? 1 : -1; o.vx = o.vy = 0;
         say(o, o.kind === 'director' ? ['給我站住！', '你過來！'] : ['看鞭！', '手伸出來！'], 1);
       }
-      else if ((o.state === 'walk' && d < 10) || o.t <= 0 || (o.state === 'chase' && d < 58)) { o.state = 'idle'; o.t = rand(.8, 2.2); if (dh < 90) o.face = hero.x > o.x ? 1 : -1; }
+      else if ((o.state === 'walk' && d < 10) || o.t <= 0 || (o.state === 'chase' && d < 58)) { o.state = 'idle'; o.t = rand(.3, .8); if (dh < 90) o.face = hero.x > o.x ? 1 : -1; }
       else { o.vx = dx / d * speed; o.vy = dy / d * speed; }
       break; }
     case 'flee': {
@@ -606,6 +628,12 @@ function updateOld(o, dt) {
   if (Math.abs(o.vx) > 5) o.face = o.vx > 0 ? 1 : -1;
   o.walkT += speed * dt * 0.12;
   collide(o);
+  // 彼此散開，不要疊成一團
+  for (const p of olds) {
+    if (p === o || p.state === 'fly' || p.state === 'down' || p.state === 'gone') continue;
+    const sx = o.x - p.x, sy = o.y - p.y, sd = Math.hypot(sx, sy);
+    if (sd < 30 && sd > .01) { const push = (30 - sd) / 2; o.x += sx / sd * push; o.y += sy / sd * push; }
+  }
   // 不要跟主角重疊
   if (o.state !== 'down') { const dx = o.x - hero.x, dy = o.y - hero.y, d = Math.hypot(dx, dy), m = o.r + hero.r; if (d < m && d > .01) { o.x = hero.x + dx / d * m; o.y = hero.y + dy / d * m; } }
 }
@@ -639,7 +667,8 @@ const BOSSES = [
     minion: ['校長好！', '遵命！'],
     hurt: ['我是校長欸！', '結束你自己！', '反了反了！'], down: '結束……我自己……' },
 ];
-let boss = null, nextBossAt = 8, bossIndex = 0, bossRound = 1;
+let boss = null, nextBossAt = 6, bossIndex = 0, bossRound = 1, bossWait = 0, kos = 0, playT = 0;
+const gruntTarget = () => Math.min(18, 10 + bossIndex * 2);
 const waves = [], slams = [], shots = [];
 function showBanner(big, sub) {
   const el = $('banner'); el.innerHTML = `<span class="big">${big}</span>${sub ? `<span class="sub">${sub}</span>` : ''}`;
@@ -780,7 +809,8 @@ function attackTick(b, dt) {
 }
 function updateBoss(dt) {
   const b = boss; if (!b) return; const d = b.def;
-  b.alpha = Math.min(1, b.alpha + dt * 1.5); b.inv -= dt;
+  if (b.state !== 'gone') b.alpha = Math.min(1, b.alpha + dt * 1.5); // 淡入（消失中時不要再加回來）
+  b.inv -= dt;
   if (b.say) { b.say.t -= dt; if (b.say.t <= 0) b.say = null; }
   const dx = hero.x - b.x, dy = hero.y - b.y, dh = Math.hypot(dx, dy) || 1;
   let speed = 0;
@@ -822,8 +852,10 @@ function updateBoss(dt) {
     case 'gone':
       b.alpha -= dt * 1.5;
       if (b.alpha <= 0) {
-        boss = null; $('bossBar').hidden = true; nextBossAt = score + 12;
+        const finale = b.def.key === 'speech' && bossRound === 1;
+        boss = null; $('bossBar').hidden = true; nextBossAt = score + 5; bossWait = 0;
         bossIndex++; if (bossIndex % BOSSES.length === 0) bossRound++;
+        if (finale) showEnding();
       }
       return;
   }
@@ -937,7 +969,8 @@ function drawLeg(img, hip, ang, lift) {
   ctx.drawImage(img, 0, 0); ctx.restore();
 }
 function drawLaugh(time) {
-  const f = clamp(LAUGH_FIRST + Math.floor(hero.laugh * LAUGH_FPS), 0, LAUGH_FRAMES - 1);
+  const f = hero.celebrate ? LAUGH_FIRST + Math.floor(time * LAUGH_FPS) % (LAUGH_FRAMES - LAUGH_FIRST)
+    : clamp(LAUGH_FIRST + Math.floor(hero.laugh * LAUGH_FPS), 0, LAUGH_FRAMES - 1);
   const sx = (f % LAUGH_COLS) * LAUGH_FW, sy = Math.floor(f / LAUGH_COLS) * LAUGH_FH;
   const h = 152, w = h * LAUGH_FW / LAUGH_FH;
   drawShadow(hero.x, hero.y + 2, 44, 12);
@@ -965,7 +998,7 @@ function drawLaughRings() {
   }
 }
 function drawHero(time) {
-  if (hero.laugh >= 0) { drawLaugh(time); return; }
+  if (hero.laugh >= 0 || hero.celebrate) { drawLaugh(time); return; }
   if (hero.dead) { // 倒在地上
     drawShadow(hero.x, hero.y + 2, 50, 10);
     if (!parts.ready) return;
@@ -1463,7 +1496,7 @@ function drawFx() {
 
 // ---------- 主迴圈 ----------
 const cam = { x: hero.x, y: hero.y };
-let running = false, hurtFlash = 0, score = 0, best = 0, combo = 0, lastHit = -9, shake = 0, hitStop = 0, last = performance.now(), time = 0;
+let running = false, hurtFlash = 0, spawnTick = 0, score = 0, best = 0, combo = 0, lastHit = -9, shake = 0, hitStop = 0, last = performance.now(), time = 0;
 try { best = +localStorage.getItem('tbxlt-best') || 0; } catch (_) {}
 $('best').textContent = best;
 
@@ -1471,7 +1504,17 @@ function frame(now) {
   let dt = Math.min(.033, (now - last) / 1000); last = now; time += dt;
   if (running) {
     if (hitStop > 0) { hitStop -= dt; }
-    else { updateHero(dt); for (const o of olds) updateOld(o, dt); updateBoss(dt); updateWaves(dt); updateLaughRings(dt); updateItems(dt); }
+    else {
+      updateHero(dt); for (const o of olds) updateOld(o, dt); updateBoss(dt); updateWaves(dt); updateLaughRings(dt); updateItems(dt);
+      if (!hero.dead) {
+        playT += dt;
+        // 下一隻 Boss：撞夠人數，或等太久就自己出來
+        if (!boss) { bossWait += dt; if (score >= nextBossAt || bossWait > (bossIndex > 0 ? 12 : 30)) spawnBoss(); }
+        // 小兵補到目標數量
+        spawnTick -= dt;
+        if (olds.length < gruntTarget() && spawnTick <= 0) { olds.push(spawnOld(false)); spawnTick = 0.4; }
+      }
+    }
     updateFx(dt);
   }
   // 鏡頭：跟著主角、稍微看向前方
@@ -1528,7 +1571,7 @@ function frame(now) {
 
 function start(data) {
   if (data && data.score) { score = data.score; $('score').textContent = score; nextBossAt = Math.max(nextBossAt, score + 1); }
-  for (let i = 0; i < 7; i++) olds.push(spawnOld(i < 3));
+  for (let i = 0; i < 10; i++) olds.push(spawnOld(i < 4));
   for (const o of olds) o.alpha = 1;
   requestAnimationFrame(t => { last = t; frame(t); });
 }
@@ -1542,12 +1585,26 @@ function resetGame() {
   score = 0; $('score').textContent = 0; combo = 0; ult = 0; updateUltBtn();
   Object.assign(hero, { x: CX, y: PLAZA_Y1 + 60, vx: 0, vy: 0, hp: MAX_HP, inv: 1.5, dead: false, stun: 0, atk: -1, laugh: -1, bumpT: 0, cd: 0 });
   renderHearts();
-  boss = null; $('bossBar').hidden = true; bossIndex = 0; bossRound = 1; nextBossAt = 8;
+  boss = null; $('bossBar').hidden = true; bossIndex = 0; bossRound = 1; nextBossAt = 6; bossWait = 0; kos = 0; playT = 0;
   waves.length = slams.length = shots.length = items.length = laughRings.length = fx.length = 0;
-  olds.length = 0; for (let i = 0; i < 7; i++) { const o = spawnOld(i < 3); o.alpha = 1; olds.push(o); }
-  $('over').hidden = true;
+  olds.length = 0; for (let i = 0; i < 10; i++) { const o = spawnOld(i < 4); o.alpha = 1; olds.push(o); }
+  $('over').hidden = true; $('ending').hidden = true; hero.celebrate = false; running = true;
 }
 $('again').addEventListener('click', resetGame);
+// 打完校長：結局畫面（畢業證書），主角在後面一直大笑
+function showEnding() {
+  running = false; hero.celebrate = true; hero.vx = hero.vy = 0; playLaugh();
+  const now = new Date();
+  $('endKO').textContent = kos; $('endScore').textContent = score;
+  $('endTime').textContent = `${Math.floor(playT / 60)}:${String(Math.floor(playT % 60)).padStart(2, '0')}`;
+  $('endDate').textContent = `中華民國 ${now.getFullYear() - 1911} 年 ${now.getMonth() + 1} 月 ${now.getDate()} 日`;
+  setTimeout(() => { $('ending').hidden = false; $('endNext').focus(); }, 900);
+}
+$('endNext').addEventListener('click', () => {
+  $('ending').hidden = true; hero.celebrate = false; hero.inv = 1.5; healHero(MAX_HP, hero.x, hero.y - 150);
+  showBanner('第二輪開始！', 'Boss 血量變多了'); running = true;
+});
+$('endRestart').addEventListener('click', resetGame);
 $('go').addEventListener('click', () => {
   try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume && AC.resume(); } catch (_) {}
   $('start').hidden = true; $('hud').hidden = false;
