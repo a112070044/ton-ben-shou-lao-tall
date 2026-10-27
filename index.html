@@ -1,5 +1,14 @@
 <title>痛扁小老頭</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<!-- PWA：可以加到主畫面、像 App 一樣全螢幕開、沒網路也能玩 -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#86bd4f">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="痛扁小老頭">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Sans+TC:wght@500;700;900&display=swap">
@@ -159,6 +168,8 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 .mode-ico{font-family:var(--font-display);font-weight:900;font-size:20px;line-height:1}
 .howto summary{cursor:pointer;font-weight:900;font-size:14px}
 .howto .keys{margin-top:8px}
+.install{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#6b5a3a;text-align:center}
+.install button{font:inherit;font-weight:900;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 14px;box-shadow:0 3px 0 var(--ink);cursor:pointer;color:var(--ink)}
 .menu #go{justify-self:center;position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:2}
 #timerChip b{color:var(--ink)}
 #xpChip{flex-basis:100%;max-width:360px;display:flex;align-items:center;gap:8px;padding:4px 10px 5px}
@@ -351,6 +362,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
         <div><span>大招・大笑</span><span>集滿後按「大笑」</span></div>
       </div>
     </details>
+    <div class="install" id="installRow" hidden><button id="installBtn" type="button" hidden>安裝成 App</button><span id="installTip"></span></div>
     <button id="go" type="button">開始玩</button>
   </div>
 </div>
@@ -2579,6 +2591,22 @@ $('go').addEventListener('click', () => {
   ultBtn.hidden = false; updateUltBtn(); loadLaugh(); renderHearts();
   running = true;
 });
+// ---------- PWA：離線功能與安裝提示 ----------
+if ('serviceWorker' in navigator && /github\.io$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});
+(() => {
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (standalone || !/github\.io$/.test(location.hostname)) return;
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let deferred = null;
+  if (ios) { $('installTip').textContent = '加到主畫面玩更順：用 Safari 點下方「分享」→「加入主畫面」'; $('installRow').hidden = false; }
+  addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferred = e; $('installBtn').hidden = false; $('installTip').textContent = '裝成 App，沒網路也能玩'; $('installRow').hidden = false;
+  });
+  $('installBtn').addEventListener('click', async () => {
+    if (!deferred) return; deferred.prompt(); await deferred.userChoice.catch(() => {}); deferred = null; $('installRow').hidden = true;
+  });
+  addEventListener('appinstalled', () => { $('installRow').hidden = true; });
+})();
 window.claude?.hot?.snapshot?.(() => ({ score }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
