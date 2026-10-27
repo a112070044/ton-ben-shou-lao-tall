@@ -145,6 +145,60 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
   background:rgba(59,39,22,.5);overflow:auto;touch-action:pan-y;place-items:start center}
 .card{background:var(--paper);border:4px solid var(--ink);border-radius:22px;box-shadow:0 8px 0 var(--ink);
   max-width:380px;width:100%;padding:22px 22px 24px;display:grid;gap:14px;justify-items:center;text-align:center}
+/* 主畫面（街機風）：放射光背景＋大標題＋主角 */
+#title{position:fixed;inset:0;overflow:hidden;display:grid;color:#fff}
+#title[hidden]{display:none}
+#tsBg{position:absolute;inset:0;width:100%;height:100%}
+.ts-ui{position:relative;display:grid;grid-template-rows:auto auto 1fr auto;justify-items:center;gap:8px;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(18px + env(safe-area-inset-bottom,0px));overflow:auto}
+.ts-top{width:100%;display:flex;justify-content:space-between;gap:8px}
+.ts-pill{background:rgba(0,0,0,.45);border:3px solid var(--ink);border-radius:999px;padding:4px 12px;font-weight:900;font-size:14px}
+.ts-pill b{color:#ffd54a;font-family:var(--font-display)}
+.ts-logo{font-size:clamp(44px,min(16vw,11vh),116px);color:#ffd54a;-webkit-text-stroke:4px var(--ink);text-align:center;line-height:.95;letter-spacing:2px;
+  text-shadow:0 8px 0 var(--ink),0 0 30px rgba(255,120,40,.8);transform:rotate(-5deg);animation:tsBob 2.4s ease-in-out infinite;margin-top:6px}
+.ts-logo small{display:block;font-size:.32em;color:#fff;letter-spacing:6px;-webkit-text-stroke:3px var(--ink);margin-top:6px}
+.ts-gap{min-height:150px}
+.ts-btns{display:grid;gap:10px;width:min(420px,100%)}
+.ts-press{text-align:center;font-family:var(--font-display);font-weight:900;letter-spacing:4px;font-size:15px;animation:tsBlink 1s steps(2) infinite;text-shadow:0 2px 0 #000}
+.ts-main{font-family:var(--font-display);font-weight:900;font-size:30px;letter-spacing:4px;background:var(--pow);color:#fff;border:4px solid var(--ink);border-radius:18px;
+  box-shadow:0 6px 0 var(--ink);padding:10px;cursor:pointer;animation:tsPulse 1.2s ease-in-out infinite;touch-action:manipulation}
+.ts-main:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink);animation:none}
+.ts-sel{text-align:center;font-size:13px;font-weight:900;text-shadow:0 2px 0 #000;margin-top:-2px}
+.ts-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ts-row button{font:inherit;font-weight:900;font-size:13px;color:var(--ink);background:var(--paper);border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);
+  padding:8px 2px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.ts-row button i{display:block;font-style:normal;font-size:22px;line-height:1.2}
+.ts-row button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.ts-main:focus-visible,.ts-row button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+#title .install{color:#fff;text-shadow:0 1px 0 #000}
+@keyframes tsPulse{50%{transform:scale(1.05)}}
+@keyframes tsBob{50%{transform:rotate(-3deg) translateY(-8px)}}
+@keyframes tsBlink{50%{opacity:.2}}
+/* 子頁面：角色／模式、商店、圖鑑、說明 */
+#menuPage[hidden]{display:none}
+.page-head{display:flex;align-items:center;gap:10px}
+.page-title{flex:1;font-size:22px!important}
+.page-back{font:inherit;font-weight:900;font-size:15px;background:#fff;border:3px solid var(--ink);border-radius:12px;box-shadow:0 3px 0 var(--ink);padding:6px 12px;cursor:pointer;color:var(--ink)}
+#menuPage:not([data-page="setup"]) .p-setup,#menuPage:not([data-page="shop"]) .p-shop,#menuPage:not([data-page="dex"]) .p-dex,#menuPage:not([data-page="help"]) .p-help{display:none!important}
+/* 圖鑑 */
+.dex-tabs{display:flex;gap:6px}
+.dex-tabs button{flex:1;font:inherit;font-weight:900;font-size:15px;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px;cursor:pointer;color:var(--ink)}
+.dex-tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.dex-count{font-size:13px;font-weight:900;color:#6b5a3a;text-align:center}
+.dex-list{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:560px){.dex-list{grid-template-columns:1fr}}
+.dex-card{background:#fff;border:3px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 var(--ink);padding:10px;display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:start;min-width:0}
+.dex-card canvas{width:110px;height:130px;border-radius:12px;background:radial-gradient(circle at 50% 80%,#fff6d8,#f1e3c2 75%)}
+.dex-card b{font-size:17px;font-weight:900;display:block}
+.dex-card .dt{font-size:11px;font-weight:900;color:#fff;background:var(--ink);border-radius:6px;padding:1px 6px;display:inline-block;margin-bottom:2px}
+.dex-card q{display:block;font-weight:900;font-size:13px;color:var(--pow);margin:4px 0;quotes:"「" "」"}
+.dex-card p{margin:2px 0;font-size:12px;line-height:1.45;color:#5a4a30}
+.dex-card .rec{font-size:12px;font-weight:900;color:#2f6fb0;margin-top:4px}
+.dex-card.locked{background:#e9e2d2}
+.dex-card.locked b{color:#8a7a5a}
+.dex-card.skill{grid-template-columns:52px 1fr;align-items:center}
+.dex-card .sk-ico{width:48px;height:48px;border-radius:50%;display:grid;place-content:center;font-family:var(--font-display);font-weight:900;font-size:22px;color:#fff;border:3px solid var(--ink)}
+.dex-card.evo{background:linear-gradient(160deg,#fff4c4,#ffe08a)}
 /* 主選單：選角色、選關卡、選模式 */
 .menu{width:min(780px,100%);background:var(--paper);border:4px solid var(--ink);border-radius:24px;box-shadow:0 8px 0 var(--ink);
   padding:18px 18px 22px;display:grid;gap:14px}
@@ -274,7 +328,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
 #pause .end-btn{width:100%}
 #pause .lede{margin:0;font-size:13px;font-weight:700;opacity:.75}
 .end-btn.ghost{background:var(--paper);color:var(--ink);font-size:18px}
-@media (prefers-reduced-motion:reduce){.opt canvas,#ult.ready,#ending::before,.confetti{animation:none}#banner.show{animation:none;transform:translate(-50%,-50%) rotate(-3deg)}}
+@media (prefers-reduced-motion:reduce){.ts-logo,.ts-main,.ts-press,.opt canvas,#ult.ready,#ending::before,.confetti{animation:none}#banner.show{animation:none;transform:translate(-50%,-50%) rotate(-3deg)}}
 </style>
 
 <canvas id="game"></canvas>
@@ -367,15 +421,35 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
 <img id="ultFace" alt="" hidden>
 
 <div id="start">
-  <div class="menu">
-    <h1>痛扁小老頭</h1>
-    <div class="menu-tag">老頭國民中學的老師主任整天碎碎念，用大肚子把他們撞飛！</div>
-    <section><h2><i>1</i>選角色</h2><div class="opts" id="optChar"></div></section>
-    <section><h2><i>2</i>選關卡</h2><div class="opts" id="optStage"></div></section>
-    <section><h2><i>3</i>遊戲模式</h2><div class="opts modes" id="optMode"></div></section>
-    <section><div class="shop-head"><h2><i>4</i>永久升級</h2><span class="coins">金幣 <b id="coinNow">0</b></span></div><div class="opts shop" id="optShop"></div></section>
-    <details class="howto"><summary>操作說明</summary>
-      <div class="keys" id="keysPC">
+  <div id="title">
+    <canvas id="tsBg" aria-hidden="true"></canvas>
+    <div class="ts-ui">
+      <div class="ts-top"><span class="ts-pill">最高分 <b id="tsBest">0</b></span><span class="ts-pill">金幣 <b id="tsCoins">0</b></span></div>
+      <h1 class="ts-logo">痛扁<br>小老頭<small>老頭國中大亂鬥</small></h1>
+      <div class="ts-gap"></div>
+      <div class="ts-btns">
+        <div class="ts-press">- PRESS START -</div>
+        <button id="tsPlay" class="ts-main" type="button">開始遊戲</button>
+        <div class="ts-sel" id="tsSel"></div>
+        <div class="ts-row">
+          <button type="button" data-go="setup"><i>🧑‍🎓</i>角色／模式</button><button type="button" data-go="dex"><i>📖</i>圖鑑</button><button type="button" data-go="shop"><i>🛒</i>商店</button><button type="button" data-go="help"><i>❓</i>說明</button>
+        </div>
+        <div class="install" id="installRow" hidden><button id="installBtn" type="button" hidden>安裝成 App</button><span id="installTip"></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="menu" id="menuPage" hidden data-page="setup">
+    <div class="page-head"><button type="button" class="page-back" id="pageBack">← 返回</button><h2 class="page-title" id="pageTitle">角色／模式</h2><span class="coins p-shop">金幣 <b id="coinNow">0</b></span></div>
+    <section class="p-setup"><h2><i>1</i>選角色</h2><div class="opts" id="optChar"></div></section>
+    <section class="p-setup"><h2><i>2</i>選關卡</h2><div class="opts" id="optStage"></div></section>
+    <section class="p-setup"><h2><i>3</i>遊戲模式</h2><div class="opts modes" id="optMode"></div></section>
+    <section class="p-shop"><div class="menu-tag">每局結束會拿到金幣，用來買永久能力</div><div class="opts shop" id="optShop"></div></section>
+    <section class="p-dex">
+      <div class="dex-tabs" role="tablist"><button type="button" data-tab="boss" aria-selected="true">Boss</button><button type="button" data-tab="char" aria-selected="false">角色</button><button type="button" data-tab="skill" aria-selected="false">技能</button></div>
+      <div class="dex-count" id="dexCount"></div>
+      <div class="dex-list" id="dexList"></div>
+    </section>
+    <section class="p-help howto"><div class="keys" id="keysPC">
         <div><span>走路</span><span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span></div>
         <div><span>肚子撞</span><span><kbd>空白鍵</kbd> 或 <kbd>J</kbd></span></div>
         <div><span>大招・大笑</span><span>集滿後按 <kbd>K</kbd></span></div>
@@ -385,9 +459,8 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
         <div><span>肚子撞</span><span>按右下「撞！」或點右半邊</span></div>
         <div><span>大招・大笑</span><span>集滿後按「大笑」</span></div>
       </div>
-    </details>
-    <div class="install" id="installRow" hidden><button id="installBtn" type="button" hidden>安裝成 App</button><span id="installTip"></span></div>
-    <button id="go" type="button">開始玩</button>
+    </section>
+    <button id="go" class="p-setup" type="button">決定了，開始！</button>
   </div>
 </div>
 
@@ -927,6 +1000,7 @@ function reviveGrandpa() {
   statueAwake = true; allyIntro = 3; shake = 16; hero.vx = hero.vy = 0; hero.atk = -1;
   for (let i = 0; i < 3; i++) setTimeout(() => burst(STATUE.x + rand(-30, 30), STATUE.y - rand(40, 110)), i * 150);
   puff(STATUE.x, STATUE.y, 2.4);
+  dexMark('seen', 'grandpa');
   ally = { x: STATUE.x, y: STATUE.y + 40, z: 0, face: -1, cd: 1.2, alpha: 1, state: 'ally', say: { text: '我要說話！！', t: 2.8, big: true } };
   showBanner('舌我爺爺 復活了！', '看不下去學校變成這樣，決定跟你一起對抗老師！', true); sfx.boss();
 }
@@ -1460,7 +1534,7 @@ function spawnBoss() {
     say: null, sayCd: 4, line: -1, rage, face: 1, z: 0, vz: 0, spin: 0, alpha: 0, lie: 1, bounces: 0, bouncy: false, n: 0, ax: 1, ay: 0 };
   $('bossName').textContent = bossLabel(def) + (bossRound > 1 ? `（第 ${bossRound} 輪）` : '');
   $('bossTip').textContent = def.tip; $('bossHp').style.width = '100%';
-  showBossCard(def); sfx.boss(); tone(900, 200, .35, 'sawtooth', .08);
+  showBossCard(def); dexMark('seen', def.key); sfx.boss(); tone(900, 200, .35, 'sawtooth', .08);
   hero.vx = hero.vy = 0; hero.atk = -1;
 }
 const bossHittable = b => !['intro', 'fly', 'down', 'gone'].includes(b.state) && b.z < 30;
@@ -1526,7 +1600,7 @@ function hitBoss(dx = hero.dx, dy = hero.dy, fromUlt = false) {
   $('bossHp').style.width = Math.max(0, b.hp / b.maxHp * 100) + '%';
   if (b.hp <= 0) {
     b.state = 'fly'; b.bouncy = true; b.z = 0; b.vx = dx * 900; b.vy = dy * 700; b.vz = 900; b.spinV = (dx >= 0 ? 1 : -1) * 14; b.lie = dx >= 0 ? 1 : -1;
-    b.say = { text: d.down, t: 3 }; addScore(d.score); bossKills++; dropGems(b.x, b.y, 6, 40 * bossRound); pop('KO！', b.x, b.y - 120, 1.6); healHero(2, hero.x, hero.y - 150);
+    b.say = { text: d.down, t: 3 }; addScore(d.score); bossKills++; dexMark('kills', d.key); dropGems(b.x, b.y, 6, 40 * bossRound); pop('KO！', b.x, b.y - 120, 1.6); healHero(2, hero.x, hero.y - 150);
     for (let i = 0; i < 3; i++) setTimeout(() => burst(b.x + rand(-40, 40), b.y - b.z - rand(30, 90)), i * 120);
     showBanner(`擊敗「${d.name}」！`, d.key === 'speech' ? `全校終於安靜了　+${d.score} 分` : `+${d.score} 分`);
     shots.length = 0;
@@ -2820,7 +2894,7 @@ const MODES = [
   { id: 'endless', ico: '∞', name: '無盡模式', desc: 'Boss 輪流來，撐到被退學' },
   { id: 'bossrush', ico: '★', name: 'Boss 連戰', desc: '小兵很少，Boss 一隻接一隻' },
   { id: 'timed', ico: '60s', name: '限時 60 秒', desc: '60 秒內拿越多分越好' },
-  { id: 'survival', ico: '10:00', name: '生存 10 分鐘', desc: '撐滿 10 分鐘就贏，每 2 分鐘來一隻 Boss' },
+  { id: 'survival', ico: '10:00', name: '生存 10 分鐘', desc: '撐滿 10 分鐘就贏，約每 85 秒來一隻 Boss' },
 ];
 let CHAR = CHARS[0], STAGE = STAGES[0], MODE = MODES[0];
 const sel = { char: 'yellow', stage: 'day', mode: 'story' };
@@ -2896,6 +2970,117 @@ function applySelection() {
   document.querySelector('.mvp-tag').textContent = CHAR.name; $('ultName').textContent = CHAR.ultName;
   loadBest();
 }
+
+// ---------- 主畫面（街機風）與子頁面 ----------
+// 圖鑑紀錄：遇過哪些 Boss、各打倒幾次（存在這台裝置上）
+let dex = { seen: {}, kills: {} };
+try { const d = JSON.parse(localStorage.getItem('tbxlt-dex') || '{}'); Object.assign(dex.seen, d.seen); Object.assign(dex.kills, d.kills); } catch (_) {}
+function dexMark(kind, key) { dex[kind][key] = (dex[kind][key] || 0) + 1; try { localStorage.setItem('tbxlt-dex', JSON.stringify(dex)); } catch (_) {} }
+const PAGE_TITLES = { setup: '角色／模式', shop: '商店・永久升級', dex: '圖鑑', help: '操作說明' };
+const charImg = ch => ch.sprite ? sprites[ch.sprite] : ch.hue == null ? heroImg : heroFor(ch);
+function updateTitle() {
+  const ch = CHARS.find(c => c.id === sel.char) || CHARS[0], st = STAGES.find(c => c.id === sel.stage) || STAGES[0], md = MODES.find(c => c.id === sel.mode) || MODES[0];
+  let b = 0; try { b = +localStorage.getItem('tbxlt-best' + (md.id === 'story' ? '' : '-' + md.id)) || 0; } catch (_) {}
+  $('tsBest').textContent = b; $('tsCoins').textContent = coins;
+  $('tsSel').textContent = `${ch.name}・${st.name}・${md.name}`;
+}
+function showTitle() {
+  $('menuPage').hidden = true; $('title').hidden = false; updateTitle();
+  $('tsPlay').focus({ preventScroll: true }); if (!tsAnim) tsAnim = requestAnimationFrame(paintTitle);
+}
+function openPage(pg) {
+  $('title').hidden = true; const m = $('menuPage'); m.dataset.page = pg; m.hidden = false; $('pageTitle').textContent = PAGE_TITLES[pg];
+  if (pg === 'shop') renderShop();
+  if (pg === 'dex') renderDex(dexTab);
+  $('start').scrollTop = 0; $('pageBack').focus({ preventScroll: true });
+}
+document.querySelectorAll('.ts-row [data-go]').forEach(bt => bt.addEventListener('click', () => openPage(bt.dataset.go)));
+$('pageBack').addEventListener('click', showTitle);
+$('tsPlay').addEventListener('click', () => $('go').click());
+addEventListener('keydown', e => {
+  if ($('start').hidden) return;
+  if (e.key === 'Escape' && !$('menuPage').hidden) { e.preventDefault(); showTitle(); return; }
+  if ((e.key === 'Enter' || e.key === ' ') && !$('title').hidden && !(document.activeElement && document.activeElement.tagName === 'BUTTON')) { e.preventDefault(); $('tsPlay').click(); }
+});
+// 背景：紫紅漸層＋旋轉的放射光＋目前選的角色在中間彈跳
+let tsAnim = 0;
+function paintTitle(now) {
+  tsAnim = 0; if ($('start').hidden || $('title').hidden) return;
+  const cv = $('tsBg'), g = cv.getContext('2d'), dpr = Math.min(2, devicePixelRatio || 1), W = innerWidth, H = innerHeight, t = now / 1000;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#2a1250'); gr.addColorStop(1, '#e2412f'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  const cy = H * .6;
+  g.save(); g.translate(W / 2, cy); g.rotate(t * .2); g.fillStyle = 'rgba(255,213,74,.13)';
+  for (let i = 0; i < 16; i++) { g.rotate(Math.PI / 8); g.beginPath(); g.moveTo(0, 0); g.lineTo(-70, -2000); g.lineTo(70, -2000); g.fill(); }
+  g.restore();
+  const ch = CHARS.find(c => c.id === sel.char) || CHARS[0], img = charImg(ch);
+  if (img && (img.naturalWidth || img.width)) {
+    const ga = $('title').querySelector('.ts-gap').getBoundingClientRect();
+    const h = Math.max(130, Math.min(ga.height - 6, H * .42, 340)), w = h * (img.naturalWidth || img.width) / (img.naturalHeight || img.height);
+    const foot = ga.bottom + 10, bob = Math.abs(Math.sin(t * 3)) * 10, sq = Math.sin(t * 6) * .02;
+    g.fillStyle = 'rgba(0,0,0,.3)'; g.beginPath(); g.ellipse(W / 2, foot, w * .42, 14, 0, 0, 7); g.fill();
+    g.save(); g.translate(W / 2, foot - bob); g.scale(1 + sq, 1 - sq); g.drawImage(img, -w / 2, -h, w, h); g.restore();
+  }
+  tsAnim = requestAnimationFrame(paintTitle);
+}
+// ---------- 圖鑑 ----------
+let dexTab = 'boss', dexAnim = 0;
+const dexBossScale = k => cardPose[k][2] * .42;
+function drawDexBoss(cv, d, t) {
+  const g = cv.getContext('2d'), [state, pose] = cardPose[d.key], locked = !dex.seen[d.key];
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height);
+  const saved = ctx; ctx = g;
+  try {
+    const sc = dexBossScale(d.key); ctx.setTransform(sc, 0, 0, sc, cv.width / 2, cv.height - 14);
+    drawBoss({ def: d, x: 0, y: 0, z: 0, alpha: 1, inv: 0, state: locked ? 'walk' : state, pose: locked ? 0 : pose, walkT: locked ? 0 : t * 2, jt: 0, ax: 0, face: -1 }, locked ? 0 : t);
+  } catch (_) {}
+  ctx = saved;
+  if (locked) { g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-atop'; g.fillStyle = '#3b2716'; g.fillRect(0, 0, cv.width, cv.height); g.globalCompositeOperation = 'source-over';
+    g.fillStyle = '#fff'; g.font = '900 56px ' + FONT; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('？', cv.width / 2, cv.height / 2); }
+}
+function renderDex(tab) {
+  dexTab = tab; cancelAnimationFrame(dexAnim); dexAnim = 0;
+  document.querySelectorAll('.dex-tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  const list = $('dexList'); list.innerHTML = '';
+  const card = (cls, html) => { const el = document.createElement('div'); el.className = 'dex-card ' + cls; el.innerHTML = html; list.appendChild(el); return el; };
+  if (tab === 'boss') {
+    const n = BOSSES.filter(d => dex.seen[d.key]).length;
+    $('dexCount').textContent = `已解鎖 ${n} / ${BOSSES.length} 隻（在遊戲中遇到就會解鎖）`;
+    const cvs = [];
+    BOSSES.forEach((d, i) => {
+      const seen = dex.seen[d.key] || 0, kills = dex.kills[d.key] || 0, tag = d.key === 'speech' ? 'FINAL BOSS' : `BOSS ${i + 1}`;
+      const el = seen
+        ? card('', `<canvas width="220" height="260"></canvas><div><span class="dt">${tag}</span><b>${d.title ? d.title + '・' : ''}${d.name}</b><q>${d.catch.replace(/\n/g, '')}</q><p>${d.intro}</p><p>💡 ${d.tip}</p><p>血量 ${d.hp}</p><div class="rec">遇到 ${seen} 次・打倒 ${kills} 次${kills ? ' ✅' : ''}</div></div>`)
+        : card('locked', `<canvas width="220" height="260"></canvas><div><span class="dt">${tag}</span><b>？？？</b><p>還沒遇到這隻 Boss。</p><p>在遊戲中遇到牠就會解鎖。</p></div>`);
+      const cv = el.querySelector('canvas'); cv.style.background = seen ? `radial-gradient(circle at 50% 80%,${d.colors[0]}55,${d.colors[1]}22 75%)` : ''; cvs.push([cv, d]);
+    });
+    const loop = now => { if ($('menuPage').hidden || $('menuPage').dataset.page !== 'dex' || dexTab !== 'boss') { dexAnim = 0; return; } for (const [cv, d] of cvs) drawDexBoss(cv, d, now / 1000); dexAnim = requestAnimationFrame(loop); };
+    dexAnim = requestAnimationFrame(loop);
+  } else if (tab === 'char') {
+    $('dexCount').textContent = `${CHARS.length} 位同學＋1 位夥伴`;
+    for (const ch of CHARS) {
+      const el = card('', `<canvas width="220" height="260"></canvas><div><b>${ch.name}</b><p>${ch.desc}</p>${bar('速度', (ch.speed - 240) / 160)}${bar('血量', ch.hp / 7)}${bar('力氣', (ch.power - .7) / .55)}<p>血量 ${ch.hp}・大招「${ch.ultName}」</p></div>`);
+      const cv = el.querySelector('canvas'), img = charImg(ch);
+      const paint = () => { const g = cv.getContext('2d'), iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height, h = 230, w = Math.min(210, h * iw / ih); g.drawImage(img, (220 - w) / 2, 260 - h - 10, w, h); };
+      if (img.naturalWidth || img.width) paint(); else img.addEventListener('load', paint, { once: true });
+    }
+    const met = dex.seen.grandpa;
+    const el = card(met ? '' : 'locked', met
+      ? `<canvas width="220" height="260"></canvas><div><span class="dt">夥伴</span><b>舌我爺爺</b><q>我要說話！</q><p>學校的創辦人，看不下去學校變成這樣，從廣場的銅像裡復活來幫你。</p><p>會丟「說話！」撞飛敵人，你快被退學時會救你一次。</p></div>`
+      : `<canvas width="220" height="260"></canvas><div><span class="dt">夥伴</span><b>？？？</b><p>廣場上好像有一座銅像……</p><p>走過去看看就會解鎖。</p></div>`);
+    const cv = el.querySelector('canvas'), g = cv.getContext('2d'), saved = ctx; ctx = g;
+    try { ctx.setTransform(1.7, 0, 0, 1.7, 110, 236); drawAlly({ x: 0, y: 0, z: 0, face: 1, alpha: 1, cd: 1, state: 'ally' }, 0); } catch (_) {}
+    ctx = saved;
+    if (!met) { g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-atop'; g.fillStyle = '#3b2716'; g.fillRect(0, 0, 220, 260); g.globalCompositeOperation = 'source-over'; }
+  } else {
+    $('dexCount').textContent = `${SKILLS.length} 種技能・${EVOS.length} 種進化（技能都練到滿級、再配對就能進化）`;
+    for (const k of SKILLS) card('skill', `<span class="sk-ico" style="background:${k.color}">${k.ico}</span><div><b>${k.name}</b><p>Lv1：${k.desc(1)}</p><p>Lv${MAX_SK}：${k.desc(MAX_SK)}</p></div>`);
+    for (const e of EVOS) card('skill evo', `<span class="sk-ico" style="background:${e.color}">${e.ico}</span><div><span class="dt">進化</span><b>${e.name}</b><p>${e.desc()}</p><p>需要：${e.need.map(nameOf).join(' ＋ ')}</p></div>`);
+  }
+}
+document.querySelectorAll('.dex-tabs button').forEach(b => b.addEventListener('click', () => renderDex(b.dataset.tab)));
+showTitle();
 // 暫停：遊戲進行中才能按（升級選卡、被退學、結算畫面時不行）
 let paused = false;
 const canPause = () => !$('hud').hidden && running && !lvOpen && !hero.dead;
@@ -2924,7 +3109,7 @@ function backToMenu() {
   running = false; closeMvp(); hideBossCard(); $('over').hidden = true;
   boss = null; $('bossBar').hidden = true;
   $('hud').hidden = true; bumpBtn.hidden = true; ultBtn.hidden = true; $('stickHint').hidden = true;
-  renderShop(); $('start').hidden = false; $('go').focus({ preventScroll: true });
+  renderShop(); $('start').hidden = false; showTitle();
 }
 $('toMenu').addEventListener('click', backToMenu);
 $('endMenu').addEventListener('click', backToMenu);
