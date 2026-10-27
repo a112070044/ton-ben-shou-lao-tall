@@ -33,7 +33,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 
 #hud{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));
-  display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;pointer-events:none;max-width:calc(100% - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px))}
+  display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;pointer-events:none;max-width:calc(100% - 84px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px))}
 .chip{background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:6px 12px 7px;
   box-shadow:0 4px 0 var(--ink);display:flex;align-items:baseline;gap:6px;line-height:1}
 .chip b{font-family:var(--font-display);font-weight:900;font-size:26px;font-variant-numeric:tabular-nums;color:var(--pow)}
@@ -262,6 +262,17 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 @media (max-width:700px){.mvp{grid-template-columns:1fr}.mvp-stage canvas{width:min(56vw,250px)}.mvp-title{font-size:clamp(64px,20vw,110px)}}
 .end-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+/* 暫停：右上角的按鈕和暫停選單 */
+#pauseBtn{position:fixed;z-index:30;top:calc(10px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));
+  width:48px;height:48px;border-radius:14px;background:var(--paper);border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);
+  font:900 20px var(--font-display);color:var(--ink);cursor:pointer;display:grid;place-items:center;padding:0;touch-action:manipulation}
+#pauseBtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+#pause{position:fixed;inset:0;z-index:45;display:grid;place-items:center;padding:20px;background:rgba(59,39,22,.6)}
+#pause[hidden]{display:none}
+#pause .card{display:grid;gap:12px;justify-items:center;min-width:min(300px,86vw)}
+#pause h2{margin:0;font-family:var(--font-display);font-weight:900;font-size:38px;color:var(--pow);-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink)}
+#pause .end-btn{width:100%}
+#pause .lede{margin:0;font-size:13px;font-weight:700;opacity:.75}
 .end-btn.ghost{background:var(--paper);color:var(--ink);font-size:18px}
 @media (prefers-reduced-motion:reduce){.opt canvas,#ult.ready,#ending::before,.confetti{animation:none}#banner.show{animation:none;transform:translate(-50%,-50%) rotate(-3deg)}}
 </style>
@@ -322,6 +333,16 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
         <button id="endMenu" class="end-btn ghost" type="button">回主選單</button>
       </div>
     </div>
+  </div>
+</div>
+<button id="pauseBtn" type="button" hidden aria-label="暫停">❚❚</button>
+<div id="pause" hidden>
+  <div class="card">
+    <h2>暫停中</h2>
+    <button id="resumeBtn" class="end-btn" type="button">繼續玩</button>
+    <button id="restartBtn" class="end-btn ghost" type="button">重新開始</button>
+    <button id="quitBtn" class="end-btn ghost" type="button">退出回主選單</button>
+    <p class="lede" id="pauseTip">電腦按 Esc 或 P 也可以暫停／繼續</p>
   </div>
 </div>
 <div id="over" hidden>
@@ -535,6 +556,8 @@ const keys = new Set();
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
+  if ((k === 'escape' || k === 'p') && !e.repeat) { togglePause(); return; }
+  if (paused) return;
   if (k === ' ' || k === 'j') { if (!e.repeat) attack(); return; }
   if (k === 'k' || k === 'l') { if (!e.repeat) ultimate(); return; }
   keys.add(k);
@@ -715,6 +738,7 @@ function updateHero(dt) {
   }
 }
 function attack() {
+  if (paused) return;
   if (inCutscene()) { // 按攻擊：登場卡時直接跳到開場白，開場白時跳下一句
     const rest = boss.def.opening.length * INTRO_LINE + 0.4;
     boss.t = boss.t > rest ? rest : boss.t - INTRO_LINE + .01; return;
@@ -2742,7 +2766,28 @@ function applySelection() {
   document.querySelector('.mvp-tag').textContent = CHAR.name; $('ultName').textContent = CHAR.ultName;
   loadBest();
 }
+// 暫停：遊戲進行中才能按（升級選卡、被退學、結算畫面時不行）
+let paused = false;
+const canPause = () => !$('hud').hidden && running && !lvOpen && !hero.dead;
+function pauseGame() {
+  if (paused || !canPause()) return;
+  paused = true; running = false; resetStick(); keys.clear(); hero.vx = hero.vy = 0;
+  $('pause').hidden = false; $('resumeBtn').focus({ preventScroll: true });
+}
+function resumeGame() {
+  if (!paused) return;
+  paused = false; $('pause').hidden = true; last = performance.now(); running = true;
+}
+function togglePause() { if (paused) resumeGame(); else pauseGame(); }
+$('pauseBtn').addEventListener('click', e => { e.stopPropagation(); pauseGame(); });
+$('pauseBtn').addEventListener('pointerdown', e => e.stopPropagation());
+$('resumeBtn').addEventListener('click', resumeGame);
+$('restartBtn').addEventListener('click', () => { paused = false; $('pause').hidden = true; payCoins(false); resetGame(); });
+$('quitBtn').addEventListener('click', () => { paused = false; $('pause').hidden = true; payCoins(false); backToMenu(); });
+// 手機切到別的 App、接電話時自動暫停
+document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
 function backToMenu() {
+  paused = false; $('pause').hidden = true; $('pauseBtn').hidden = true;
   running = false; closeMvp(); hideBossCard(); $('over').hidden = true;
   boss = null; $('bossBar').hidden = true;
   $('hud').hidden = true; bumpBtn.hidden = true; ultBtn.hidden = true; $('stickHint').hidden = true;
@@ -2756,6 +2801,7 @@ $('go').addEventListener('click', () => {
   $('start').hidden = true; $('hud').hidden = false;
   if (isTouch) { bumpBtn.hidden = false; $('stickHint').hidden = false; } else ultBtn.classList.add('pc');
   ultBtn.hidden = false; updateUltBtn(); loadLaugh(); renderHearts();
+  $('pauseBtn').hidden = false; $('pauseTip').hidden = isTouch;
   running = true;
 });
 // ---------- PWA：離線功能與安裝提示 ----------
