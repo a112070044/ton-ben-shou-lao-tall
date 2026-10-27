@@ -681,7 +681,7 @@ function attack() {
     boss.t = boss.t > rest ? rest : boss.t - INTRO_LINE + .01; return;
   }
   if (!running || hero.cd > 0 || hero.stun > 0 || hero.laugh >= 0 || hero.dead) return;
-  hero.cd = 0.45 * (1 - .12 * skl('cd')); hero.atk = 0; hero.lunged = false;
+  hero.cd = 0.75 * (1 - .08 * skl('cd')); hero.atk = 0; hero.lunged = false; // 普攻間隔 0.75 秒
   if (Math.abs(hero.dx) > 0.2) hero.face = hero.dx > 0 ? 1 : -1;
 }
 function collide(b) {
@@ -768,7 +768,7 @@ const SKILLS = [
   { id: 'belly', ico: '肚', color: '#e2412f', name: '大肚腩', desc: lv => `撞擊範圍 +${lv * 20}%` },
   { id: 'heart', ico: '奶', color: '#c99a6b', name: '珍奶加大', desc: lv => `最多愛心 +${lv}，順便補 1 顆` },
   { id: 'speed', ico: '腿', color: '#3f9b5a', name: '飛毛腿', desc: lv => `移動速度 +${lv * 8}%` },
-  { id: 'cd', ico: '連', color: '#d38b12', name: '連環撞', desc: lv => `撞擊冷卻 -${lv * 12}%` },
+  { id: 'cd', ico: '連', color: '#d38b12', name: '連環撞', desc: lv => `撞擊冷卻 -${lv * 8}%` },
   { id: 'magnet', ico: '吸', color: '#2f8fe0', name: '吸力肚臍', desc: lv => `撿寶石範圍 +${lv * 50}%` },
   { id: 'charge', ico: '充', color: '#ff6f91', name: '充能時間', desc: lv => `大招集氣速度 +${lv * 30}%` },
   { id: 'quake', ico: '震', color: '#8a5ad1', name: '肚皮震波', desc: lv => `每次撞擊震飛身邊 ${80 + lv * 25} 範圍的人` },
@@ -781,7 +781,7 @@ let level = 1, xp = 0, xpNeed = 60, pendingLv = 0, lvOpen = false, bookCd = 1;
 let skills = {};
 const gems = [], books = [];
 const skl = id => skills[id] || 0;
-const bumpR = () => 62 * POWER * (1 + .2 * skl('belly'));
+const bumpR = () => 54 * POWER * (1 + .2 * skl('belly'));
 function recomputeStats() { MAXSPD = CHAR.speed * (1 + .08 * skl('speed')); MAX_HP = CHAR.hp + skl('heart'); }
 function dropGems(x, y, n, v) { for (let i = 0; i < n; i++) gems.push({ x: x + rand(-14, 14), y: y + rand(-8, 8), v, vx: rand(-160, 160), vy: rand(-120, 120), t: 0 }); }
 function renderXp() {
@@ -974,7 +974,7 @@ function knock(o, dirx = hero.dx, diry = hero.dy, fromUlt = false) {
   if (o.hitCd > 0) return;
   if (o.hp > 1) { // 越後面的老師越耐打：還沒到 0 就只會被打退
     o.hp--; o.hitCd = .3; o.x += dirx * 36; o.y += diry * 26; o.state = 'idle'; o.t = .5; o.vx = o.vy = 0;
-    burst(o.x, o.y - 40); pop('咚！', o.x, o.y - 80, .8); sfx.hit(); if (!fromUlt) { hitStop = .04; gainUlt(4); }
+    burst(o.x, o.y - 40); pop('咚！', o.x, o.y - 80, .8); sfx.hit(); if (!fromUlt) { hitStop = .04; gainUlt(3); }
     return;
   }
   dropItem(o.x, o.y); dropGems(o.x, o.y, 1, 10 + 4 * (bossRound - 1));
@@ -987,7 +987,7 @@ function knock(o, dirx = hero.dx, diry = hero.dy, fromUlt = false) {
   if (fromUlt) hero.ultKO++;
   else {
     const now = performance.now() / 1000; combo = (now - lastHit < 2.2) ? combo + 1 : 1; lastHit = now;
-    hitStop = 0.07; gainUlt(14);
+    hitStop = 0.07; gainUlt(10);
     maxCombo = Math.max(maxCombo, combo);
     pop(combo > 1 ? `${combo} 連撞！` : pick(['碰！', '咚！', '扁！']), o.x, o.y - 80, combo > 1 ? 1.25 : 1);
   }
@@ -1073,21 +1073,21 @@ function updateOld(o, dt) {
 // ---------- Boss：聳肩 → 負能量 → 庄到牆 → 校長青山 ----------
 // opening：出場時的開場白（一句一句講，講完才開打）
 const BOSSES = [
-  { key: 'shrug', name: '聳肩', hp: 6, speed: 72, range: 430, score: 10,
+  { key: 'shrug', name: '聳肩', hp: 10, speed: 82, range: 430, score: 10,
     tip: '小心他聳肩的震波！', intro: '「聳肩」從教務處走出來了', catch: '同學，這個我上課講過了，\n你要自己會啊～', colors: ['#5a6378', '#3c4252'],
     opening: ['同學，你過來一下。', '這個……我上課不是講過了嗎？', '你要自己會啊～'],
     walk: ['這個上課講過了喔', '同學，你要自己會啊', '回去看講義啦', '我也沒辦法啊～'],
     wind: ['嗯……這個嘛……', '同學啊……', '你這樣讓我很為難欸'],
     attack: ['我上課講過了啊～', '你要自己會啊！', '自己回去看講義！', '我也沒辦法啊～', '這個不在我的範圍啦'],
     hurt: ['唉唷！', '我的痣！！', '我的痣毛！', '同學你哪一班的！'], down: '我…我上課…真的有講過啊……' },
-  { key: 'hammer', name: '負能量', hp: 7, speed: 66, range: 560, score: 10,
+  { key: 'hammer', name: '負能量', hp: 11, speed: 76, range: 560, score: 10,
     tip: '地上出現紅圈就快閃開！', intro: '「負能量」扛著大鐵鎚來了', catch: '我要拆系辦！！', colors: ['#5b3f7a', '#3a2850'],
     opening: ['我要拆系辦！！', '你們這個系辦，我拆定了！', '拆你系辦！全部給我拆掉！'],
     walk: ['我要拆系辦！', '拆你系辦！', '系辦留著幹嘛？拆！', '反正最後都要拆'],
     wind: ['我要拆系辦！！', '拆你系辦！！', '系辦今天就拆！'],
     attack: ['拆你系辦！！！', '拆系辦啦！！'],
     hurt: ['我還沒拆完系辦！', '痛…我要拆系辦…', '拆你系辦！'], down: '我…我的系辦…還沒拆……' },
-  { key: 'dash', name: '庄到牆', hp: 7, speed: 60, range: 720, score: 10,
+  { key: 'dash', name: '庄到牆', hp: 11, speed: 70, range: 720, score: 10,
     tip: '引他去撞牆，暈了打兩倍！', intro: '「庄到牆」帶著 AI 衝過來了', catch: 'AI一條龍！', colors: ['#1b7f9c', '#0f5468'],
     opening: ['AI一條龍！', '從頭到尾，AI 一條龍服務！', '鎖定目標，AI 一條龍出發！'],
     walk: ['AI一條龍', '交給AI就好', '一條龍服務'],
@@ -1095,7 +1095,7 @@ const BOSSES = [
     attack: ['AI一條龍！！'],
     wall: ['庄到牆…', '好痛…AI沒算到', '一條龍…又庄到牆了'],
     hurt: ['AI一條龍！', '這不在模型裡！'], down: 'AI…一條……龍……' },
-  { key: 'speech', name: '青山', title: '校長', hp: 10, speed: 56, range: 580, score: 20,
+  { key: 'speech', name: '青山', title: '校長', hp: 16, speed: 64, range: 580, score: 20,
     tip: '躲開「結束」字彈！最終 Boss', intro: '校長「青山」親自出馬！', catch: '結束你自己！', colors: ['#b8322a', '#7a1e18'],
     opening: ['全部給我安靜！', '我是校長青山。', '今天，結束你自己！'],
     walk: ['結束你自己', '校長說了算', '升旗典禮還沒結束'],
@@ -1149,7 +1149,7 @@ function drawBossCardArt(time) {
 }
 function spawnBoss() {
   const def = BOSSES[bossIndex % BOSSES.length], hp = Math.round(def.hp * (1 + (bossRound - 1) * (MODE.id === 'endless' ? .8 : .5)));
-  const rage = 1 + (bossRound - 1) * (MODE.id === 'endless' ? .18 : .1); // 每一輪 Boss 更快、更常出招
+  const rage = 1.2 + (bossRound - 1) * (MODE.id === 'endless' ? .18 : .1); // 每一輪 Boss 更快、更常出招
   boss = { def, x: CX - 240, y: PLAZA_Y1 + 20, vx: 0, vy: 0, r: 30, hp, maxHp: hp, state: 'intro', t: introTotal(def), inv: 0, pose: 0, walkT: 0,
     say: null, sayCd: 4, line: -1, rage, face: 1, z: 0, vz: 0, spin: 0, alpha: 0, lie: 1, bounces: 0, bouncy: false, n: 0, ax: 1, ay: 0 };
   $('bossName').textContent = bossLabel(def) + (bossRound > 1 ? `（第 ${bossRound} 輪）` : '');
@@ -1160,13 +1160,13 @@ function spawnBoss() {
 const bossHittable = b => !['intro', 'fly', 'down', 'gone'].includes(b.state) && b.z < 30;
 const inCutscene = () => boss && boss.state === 'intro';
 // 主角受傷：扣血、被打飛、短暫暈眩，之後 1.3 秒無敵（會閃爍）
-function hurtHero(nx, ny, stun = 0.9, power = 720) {
+function hurtHero(nx, ny, stun = 0.9, power = 720, dmg = 1) {
   if (hero.laugh >= 0 || hero.inv > 0 || hero.dead || hero.summer > 0) return false;
   if (CHAR.id === 'mouse' && Math.random() < .2) { hero.inv = .6; pop('閃！', hero.x, hero.y - 120, 1); tone(900, 1400, .1, 'sine', .1); return false; } // 鼠竄
   if (hero.shield) { // 蛋殼擋一次
     hero.shield = false; hero.inv = .8; burst(hero.x, hero.y - 50); pop('蛋殼擋住了！', hero.x, hero.y - 130, 1); tone(700, 300, .2, 'triangle', .15); return false;
   }
-  hero.hp--; hitsTaken++; hero.inv = 1.3 + .3 * skl('iron'); renderHearts(true); hurtFlash = 0.35;
+  hero.hp = Math.max(0, hero.hp - dmg); hitsTaken++; hero.inv = 1.3 + .3 * skl('iron'); renderHearts(true); hurtFlash = 0.35;
   hero.vx = nx * power; hero.vy = ny * power * .72; hero.stun = stun; hero.atk = -1; shake = 14;
   pop(stun > .5 ? '暈～' : '痛！', hero.x, hero.y - 140, 1); sfx.land(); tone(400, 120, .25, 'square', .1);
   if (hero.hp <= 0 && ally && !allySaved) { // 爺爺救你一次
@@ -1176,7 +1176,7 @@ function hurtHero(nx, ny, stun = 0.9, power = 720) {
   if (hero.hp <= 0) gameOver();
   return true;
 }
-const stunHero = (nx, ny) => hurtHero(nx, ny, 0.9, 720);
+const stunHero = (nx, ny) => hurtHero(nx, ny, 0.9, 720, 2); // Boss 的招式扣 2 顆心
 function healHero(n, x, y) {
   const before = hero.hp; hero.hp = Math.min(MAX_HP, hero.hp + n);
   if (hero.hp > before) { renderHearts(); pop(`+${hero.hp - before} ♥`, x, y, 1.1); tone(600, 1200, .2, 'sine', .15); }
@@ -1213,9 +1213,9 @@ function drawItem(it, time) {
 function hitBoss(dx = hero.dx, dy = hero.dy, fromUlt = false) {
   const b = boss, d = b.def, dizzy = b.state === 'dizzy';
   const dmg = dizzy ? 2 : 1;
-  b.hp -= dmg; b.inv = 0.5; hero.bumpT = 0; b.pose = 0;
+  b.hp -= dmg; b.inv = 0.65; hero.bumpT = 0; b.pose = 0;
   b.vx = dx * (dizzy ? 200 : 420); b.vy = dy * (dizzy ? 150 : 320);
-  if (!fromUlt) { hero.vx = -dx * 260; hero.vy = -dy * 260; hitStop = 0.09; gainUlt(10); }
+  if (!fromUlt) { hero.vx = -dx * 260; hero.vy = -dy * 260; hitStop = 0.09; gainUlt(7); }
   shake = 14; burst(b.x, b.y - 70); sfx.hit();
   $('bossHp').style.width = Math.max(0, b.hp / b.maxHp * 100) + '%';
   if (b.hp <= 0) {
@@ -1416,7 +1416,7 @@ function updateLaughRings(dt) {
       if (Math.hypot(o.x - w.x, (o.y - w.y) / .6) < w.r) { w.hits.add(o); knock(o, ...away(o), true); }
     }
     // Boss 一次大招最多扣 3 滴血
-    if (boss && !w.hits.has(boss) && hero.bossDmg < 3 && bossHittable(boss) && Math.hypot(boss.x - w.x, (boss.y - w.y) / .6) < w.r) {
+    if (boss && !w.hits.has(boss) && hero.bossDmg < 2 && bossHittable(boss) && Math.hypot(boss.x - w.x, (boss.y - w.y) / .6) < w.r) {
       w.hits.add(boss); hero.bossDmg++; hitBoss(...away(boss), true);
     }
     if (w.r > w.max) laughRings.splice(i, 1);
