@@ -1,6 +1,6 @@
 // 離線功能：玩過一次之後沒網路也能開
 // 自己的檔案「先抓最新版、沒網路才用存起來的」，所以有網路時永遠是新版
-const CACHE = 'tbxlt-v6';
+const CACHE = 'tbxlt-v7';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
