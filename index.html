@@ -758,13 +758,12 @@ const SKILLS = [
   { id: 'magnet', ico: '吸', color: '#2f8fe0', name: '吸力肚臍', desc: lv => `撿寶石範圍 +${lv * 50}%` },
   { id: 'charge', ico: '笑', color: '#ff6f91', name: '笑氣充電', desc: lv => `大笑集氣速度 +${lv * 30}%` },
   { id: 'quake', ico: '震', color: '#8a5ad1', name: '肚皮震波', desc: lv => `每次撞擊震飛身邊 ${80 + lv * 25} 範圍的人` },
-  { id: 'orbit', ico: '轉', color: '#1b9c8f', name: '迴旋珍奶', desc: lv => `${lv} 杯珍奶繞著你轉，碰到就撞飛` },
   { id: 'book', ico: '書', color: '#6b5a3a', name: '丟作業本', desc: lv => `每 ${Math.max(.5, 1.7 - lv * .25).toFixed(1)} 秒丟 ${lv >= 3 ? 2 : 1} 本作業本` },
   { id: 'iron', ico: '鐵', color: '#5a6378', name: '鐵胃', desc: lv => `受傷後無敵時間 +${(lv * .3).toFixed(1)} 秒` },
   { id: 'grandpa', ico: '爺', color: '#d4a017', name: '爺爺加班', desc: lv => `舌我爺爺說話速度 +${lv * 25}%`, need: () => !!ally },
 ];
 const MAX_SK = 5;
-let level = 1, xp = 0, xpNeed = 60, pendingLv = 0, lvOpen = false, orbitA = 0, bookCd = 1;
+let level = 1, xp = 0, xpNeed = 60, pendingLv = 0, lvOpen = false, bookCd = 1;
 let skills = {};
 const gems = [], books = [];
 const skl = id => skills[id] || 0;
@@ -817,16 +816,6 @@ function updateSkills(dt) {
     if (d < 34 && g.t > .2) { gems.splice(i, 1); gainXp(g.v); tone(1200 + Math.random() * 300, 1800, .06, 'sine', .05); }
     else if (g.t > 30) gems.splice(i, 1);
   }
-  // 迴旋珍奶
-  const no = skl('orbit');
-  if (no) {
-    orbitA += dt * 3.2;
-    for (let i = 0; i < no; i++) {
-      const a = orbitA + i / no * Math.PI * 2, cx = hero.x + Math.cos(a) * 92, cy = hero.y - 40 + Math.sin(a) * 60;
-      for (const o of olds) if (STANDING.includes(o.state) && Math.hypot(o.x - cx, o.y - 40 - cy) < 34) knock(o, Math.cos(a), Math.sin(a), true);
-      if (boss && bossHittable(boss) && boss.inv <= 0 && Math.hypot(boss.x - cx, boss.y - 80 - cy) < 50) hitBoss(Math.cos(a), Math.sin(a), true);
-    }
-  }
   // 丟作業本
   const nb = skl('book');
   if (nb) {
@@ -861,11 +850,6 @@ function drawGems(time) {
   }
 }
 function drawSkillFx(time) {
-  const no = skl('orbit');
-  for (let i = 0; i < no; i++) {
-    const a = orbitA + i / no * Math.PI * 2, cx = hero.x + Math.cos(a) * 92, cy = hero.y - 40 + Math.sin(a) * 60;
-    drawItem({ x: cx, y: cy + 22, t: 0, life: 99 }, time * 0);
-  }
   for (const b of books) {
     ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.rot);
     ctx.fillStyle = '#e8d39f'; ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-12, -9, 24, 18, 2); ctx.fill(); ctx.stroke();
