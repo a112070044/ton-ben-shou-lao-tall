@@ -773,8 +773,9 @@ function updateAlly(dt) {
     for (const o of olds) if (STANDING.includes(o.state)) { const d = Math.hypot(o.x - a.x, o.y - a.y); if (d < bd) { bd = d; tgt = o; } }
     if (boss && bossHittable(boss)) { const d = Math.hypot(boss.x - a.x, boss.y - a.y); if (d < bd) { bd = d; tgt = boss; } }
     if (tgt) {
-      const n = Math.hypot(tgt.x - a.x, tgt.y - a.y) || 1;
-      talks.push({ x: a.x, y: a.y - 70, vx: (tgt.x - a.x) / n * 460, vy: (tgt.y - a.y) / n * 460, life: 1.4 });
+      // 進化「全校廣播」後一次丟 3 個（最近的 3 個敵人）
+      const tgts = evolved.broadcast ? [tgt, ...olds.filter(o => o !== tgt && STANDING.includes(o.state)).map(o => [o, Math.hypot(o.x - a.x, o.y - a.y)]).filter(p => p[1] < 430).sort((p, q) => p[1] - q[1]).slice(0, 2).map(p => p[0])] : [tgt];
+      for (const t of tgts) { const n = Math.hypot(t.x - a.x, t.y - a.y) || 1; talks.push({ x: a.x, y: a.y - 70, vx: (t.x - a.x) / n * 460, vy: (t.y - a.y) / n * 460, life: 1.4 }); }
       a.say = { text: pick(GRANDPA_LINES), t: 1.2 }; a.cd = 2.2 / (1 + .25 * skl('grandpa')); tone(330, 660, .15, 'triangle', .12);
     } else a.cd = .5;
   }
@@ -829,6 +830,7 @@ const EVOS = [
   { id: 'storm', ico: '卷', color: '#c0392b', name: '考卷暴雨', need: ['book', 'belly'], desc: () => '每 2 秒，天上掉下 8 張考卷砸向附近的敵人' },
   { id: 'quake2', ico: '震', color: '#5b2a9c', name: '地震肚', need: ['quake', 'cd'], desc: () => '不用撞，每 2.5 秒自動震飛身邊 230 範圍的人' },
   { id: 'ghost', ico: '影', color: '#1b7f9c', name: '殘影衝刺', need: ['speed', 'iron'], desc: () => '跑步會留下殘影，碰到殘影的敵人直接飛' },
+  { id: 'broadcast', ico: '爺', color: '#d4a017', name: '全校廣播', need: ['grandpa', 'charge'], desc: () => '舌我爺爺一次丟 3 個「說話！」，每 5 秒廣播震飛身邊的人，還會再救你一次' },
   { id: 'hole', ico: '洞', color: '#3b2716', name: '珍奶黑洞', need: ['magnet', 'heart'], desc: () => '每 8 秒把附近的人捲進來震飛，順便補 1 顆心' },
 ];
 let evolved = {};
@@ -855,7 +857,7 @@ function openLevelUp() {
 }
 function pickSkill(k) {
   if (!lvOpen) return;
-  if (Array.isArray(k.need)) { evolved[k.id] = true; showBanner('技能進化！', k.name, true); }
+  if (Array.isArray(k.need)) { evolved[k.id] = true; showBanner('技能進化！', k.name, true); if (k.id === 'broadcast') { allySaved = false; if (ally) ally.say = { text: '我要說話！全校廣播！', t: 2.4, big: true }; } }
   else skills[k.id] = skl(k.id) + 1;
   recomputeStats();
   if (k.id === 'heart') { hero.hp = Math.min(MAX_HP, hero.hp + 1); renderHearts(); }
@@ -1004,7 +1006,7 @@ function drawSpriteHero(time) {
 }
 // ---------- 進化技能的效果 ----------
 const papers = [], ghosts = [];
-let stormCd = 2, quakeCd = 2.5, holeCd = 8, ghostCd = 0;
+let stormCd = 2, quakeCd = 2.5, holeCd = 8, ghostCd = 0, castCd = 5;
 function standingNear(x, y, r) { return olds.filter(o => STANDING.includes(o.state) && Math.hypot(o.x - x, o.y - y) < r); }
 function updateEvos(dt) {
   if (evolved.storm && (stormCd -= dt) <= 0) {
@@ -1034,6 +1036,13 @@ function updateEvos(dt) {
       const gh = ghosts[i]; gh.t -= dt; if (gh.t <= 0) { ghosts.splice(i, 1); continue; }
       for (const o of standingNear(gh.x, gh.y, 34)) knock(o, o.x > gh.x ? 1 : -1, 0, true);
     }
+  }
+  if (evolved.broadcast && ally && (castCd -= dt) <= 0) { // 爺爺的全校廣播
+    castCd = 5; shake = Math.max(shake, 8);
+    for (const o of standingNear(ally.x, ally.y, 320)) { const d = Math.hypot(o.x - ally.x, o.y - ally.y) || 1; knock(o, (o.x - ally.x) / d, (o.y - ally.y) / d, true); }
+    if (boss && bossHittable(boss) && boss.inv <= 0 && Math.hypot(boss.x - ally.x, boss.y - ally.y) < 320) hitBoss(Math.sign(boss.x - ally.x) || 1, 0, true);
+    laughRings.push({ x: ally.x, y: ally.y, r: 30, max: 320, hits: new Set(), quake: true, gold: true });
+    ally.say = { text: '我要說話！！', t: 1.4, big: true }; tone(220, 440, .4, 'square', .1);
   }
   if (evolved.hole && (holeCd -= dt) <= 0) {
     holeCd = 8;
@@ -1591,7 +1600,7 @@ function drawLaughRings() {
     const a = clamp(1 - w.r / w.max, 0, 1);
     ctx.save(); ctx.globalAlpha = a;
     ctx.strokeStyle = INK; ctx.lineWidth = 12; ell(w.x, w.y, w.r, w.r * .6); ctx.stroke();
-    ctx.strokeStyle = '#ff8fb0'; ctx.lineWidth = 8; ell(w.x, w.y, w.r, w.r * .6); ctx.stroke();
+    ctx.strokeStyle = w.gold ? '#ffd54a' : '#ff8fb0'; ctx.lineWidth = 8; ell(w.x, w.y, w.r, w.r * .6); ctx.stroke();
     ctx.font = '900 28px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 6; ctx.lineJoin = 'round';
     if (w.quake) { ctx.restore(); continue; }
     for (let i = 0; i < 10; i++) {
@@ -2140,8 +2149,9 @@ function drawAlly(a, time) {
   const fl = 8 + Math.sin(time * 3) * 4;
   ctx.save(); drawShadow(a.x, a.y + 2, 20, 6, .16);
   ctx.translate(a.x, a.y - fl); ctx.scale(a.face, 1);
-  const gl = ctx.createRadialGradient(0, -50, 6, 0, -50, 70); gl.addColorStop(0, 'rgba(255,225,120,.55)'); gl.addColorStop(1, 'rgba(255,225,120,0)');
-  ctx.fillStyle = gl; ell(0, -50, 70, 72); ctx.fill();
+  const big = evolved.broadcast ? 1.6 : 1; // 進化後金光更大更亮
+  const gl = ctx.createRadialGradient(0, -50, 6, 0, -50, 70 * big); gl.addColorStop(0, `rgba(255,225,120,${evolved.broadcast ? .8 : .55})`); gl.addColorStop(1, 'rgba(255,225,120,0)');
+  ctx.fillStyle = gl; ell(0, -50, 70 * big, 72 * big); ctx.fill();
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = INK; ctx.lineWidth = 2;
   // 腳（飄著，越下面越淡）
   ctx.globalAlpha = .55; limb(-5, -30, -6, -4, 7, '#4a4e58'); limb(5, -30, 6, -4, 7, '#4a4e58'); ctx.globalAlpha = 1;
@@ -2349,7 +2359,7 @@ function gameOver() {
 function resetGame() {
   score = 0; $('score').textContent = 0; combo = 0; ult = 0; updateUltBtn();
   hero.summer = 0; hero.shield = false; hero.shieldT = 0; hero.regenT = 0; minis.length = 0;
-  evolved = {}; papers.length = ghosts.length = 0; stormCd = 2; quakeCd = 2.5; holeCd = 8; hordeT = 0; survT = 0; bossKills = 0;
+  evolved = {}; papers.length = ghosts.length = 0; stormCd = 2; quakeCd = 2.5; holeCd = 8; castCd = 5; hordeT = 0; survT = 0; bossKills = 0;
   level = 1; xp = 0; xpNeed = 60; pendingLv = 0; lvOpen = false; skills = {}; bookCd = 1; gems.length = books.length = 0; $('lvlup').hidden = true;
   recomputeStats(); renderXp();
   Object.assign(hero, { x: CX, y: PLAZA_Y1 + 60, vx: 0, vy: 0, hp: MAX_HP, inv: 1.5, dead: false, stun: 0, atk: -1, laugh: -1, bumpT: 0, cd: 0 });
