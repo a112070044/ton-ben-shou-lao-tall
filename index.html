@@ -49,10 +49,10 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
   padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 #over h2{margin:0;font-family:var(--font-display);font-weight:900;font-size:40px;line-height:1.1;color:var(--pow);
   -webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink);transform:rotate(-3deg)}
-#over .stats,#ending .stats{display:flex;gap:12px;justify-content:center}
-#over .stats div,#ending .stats div{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 14px;display:grid;gap:2px;min-width:84px}
-#over .stats b,#ending .stats b{font-family:var(--font-display);font-size:28px;font-weight:900;font-variant-numeric:tabular-nums}
-#over .stats span,#ending .stats span{font-size:12px;font-weight:700}
+#over .stats,#ending .stats,#clear .stats{display:flex;gap:12px;justify-content:center}
+#over .stats div,#ending .stats div,#clear .stats div{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 14px;display:grid;gap:2px;min-width:84px}
+#over .stats b,#ending .stats b,#clear .stats b{font-family:var(--font-display);font-size:28px;font-weight:900;font-variant-numeric:tabular-nums}
+#over .stats span,#ending .stats span,#clear .stats span{font-size:12px;font-weight:700}
 #again,.end-btn{font-family:var(--font-display);font-weight:900;font-size:22px;background:var(--pow);color:#fff;border:4px solid var(--ink);
   border-radius:16px;padding:10px 32px;box-shadow:0 6px 0 var(--ink);cursor:pointer;letter-spacing:2px}
 #again:active,.end-btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
@@ -180,6 +180,23 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 .page-title{flex:1;font-size:22px!important}
 .page-back{font:inherit;font-weight:900;font-size:15px;background:#fff;border:3px solid var(--ink);border-radius:12px;box-shadow:0 3px 0 var(--ink);padding:6px 12px;cursor:pointer;color:var(--ink)}
 #menuPage:not([data-page="setup"]) .p-setup,#menuPage:not([data-page="shop"]) .p-shop,#menuPage:not([data-page="dex"]) .p-dex,#menuPage:not([data-page="help"]) .p-help{display:none!important}
+/* 闖關：選關卡、過關畫面 */
+#menuPage:not([data-page="chap"]) .p-chap{display:none!important}
+.chap-list{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:560px){.chap-list{grid-template-columns:1fr}}
+.chap{font:inherit;color:var(--ink);text-align:left;background:#fff;border:3px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 var(--ink);padding:10px 12px;cursor:pointer;
+  display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.chap:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.chap .sw{width:64px;height:64px;border-radius:12px;border:3px solid var(--ink);display:grid;place-content:center;font-family:var(--font-display);font-weight:900;font-size:26px;color:#fff;text-shadow:0 2px 0 var(--ink)}
+.chap b{font-size:17px;font-weight:900;display:block}
+.chap small{font-size:12px;color:#6b5a3a;font-weight:700}
+.chap .st{font-size:22px}
+.chap[disabled]{background:#e9e2d2;cursor:default;opacity:.8}
+.chap.next{outline:3px solid var(--pow);outline-offset:2px;background:#fff8e0}
+#clear{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:20px;background:rgba(59,39,22,.55)}
+#clear[hidden]{display:none}
+#clear h2{margin:0;font-family:var(--font-display);font-weight:900;font-size:44px;color:#ffd54a;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink);transform:rotate(-3deg);animation:mvpIn .45s cubic-bezier(.2,1.6,.4,1) both}
+.clear-eyebrow{font-family:var(--font-display);font-weight:900;background:var(--ink);color:var(--paper);border-radius:999px;padding:2px 14px;font-size:14px;letter-spacing:2px}
 /* 圖鑑 */
 .dex-tabs{display:flex;gap:6px}
 .dex-tabs button{flex:1;font:inherit;font-weight:900;font-size:15px;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px;cursor:pointer;color:var(--ink)}
@@ -400,6 +417,19 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
     <p class="lede" id="pauseTip">電腦按 Esc 或 P 也可以暫停／繼續</p>
   </div>
 </div>
+<div id="clear" hidden>
+  <div class="card">
+    <div class="clear-eyebrow" id="clearEyebrow">第 1 關</div>
+    <h2 id="clearTitle">過關！</h2>
+    <p class="lede" id="clearMsg"></p>
+    <p class="lede earn" id="clearCoins"></p>
+    <div class="stats"><div><span>這關分數</span><b id="clearScore">0</b></div><div><span>用時</span><b id="clearTime">0:00</b></div></div>
+    <div class="end-row">
+      <button id="clearNext" type="button" class="end-btn">下一關 ▶</button>
+      <button id="clearMenu" class="end-btn ghost" type="button">回主畫面</button>
+    </div>
+  </div>
+</div>
 <div id="over" hidden>
   <div class="card">
     <h2 id="overTitle">被退學了！</h2>
@@ -441,7 +471,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
   <div class="menu" id="menuPage" hidden data-page="setup">
     <div class="page-head"><button type="button" class="page-back" id="pageBack">← 返回</button><h2 class="page-title" id="pageTitle">角色／模式</h2><span class="coins p-shop">金幣 <b id="coinNow">0</b></span></div>
     <section class="p-setup"><h2><i>1</i>選角色</h2><div class="opts" id="optChar"></div></section>
-    <section class="p-setup"><h2><i>2</i>選關卡</h2><div class="opts" id="optStage"></div></section>
+    <section class="p-setup"><h2><i>2</i>選時段</h2><div class="opts" id="optStage"></div></section>
     <section class="p-setup"><h2><i>3</i>遊戲模式</h2><div class="opts modes" id="optMode"></div></section>
     <section class="p-shop"><div class="menu-tag">每局結束會拿到金幣，用來買永久能力</div><div class="opts shop" id="optShop"></div></section>
     <section class="p-dex">
@@ -449,6 +479,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
       <div class="dex-count" id="dexCount"></div>
       <div class="dex-list" id="dexList"></div>
     </section>
+    <section class="p-chap"><div class="menu-tag" id="chapTag"></div><div class="chap-list" id="chapList"></div></section>
     <section class="p-help howto"><div class="keys" id="keysPC">
         <div><span>走路</span><span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span></div>
         <div><span>肚子撞</span><span><kbd>空白鍵</kbd> 或 <kbd>J</kbd></span></div>
@@ -521,14 +552,59 @@ const inCourt = (x, y, pad) => x > COURT.x - pad && x < COURT.x + COURT.w + pad 
 
 const solids = [];   // 碰撞用的圓
 const props = [];    // 要畫的東西
+// 舌我爺爺的銅像（每張地圖都在廣場右邊），靠近就會復活
+const STATUE = { x: CX + 400, y: BLD_H + 140 };
+const ground = document.createElement('canvas'); ground.width = WORLD.w; ground.height = WORLD.h;
+const FONT_D = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+// ---------- 地圖：每一關一張（操場是原本的學校）----------
+const MAPS = {
+  school: { name: '操場・司令台', outdoor: true },
+  hall: { name: '教務處走廊' },
+  office: { name: '系辦公室' },
+  forest: { name: '後山樹林', outdoor: true },
+  lab: { name: '電腦教室' },
+  stage: { name: '禮堂' },
+  cave: { name: '後山洞穴' },
+};
+let MAP = 'school';
+// 闖關模式：一張地圖一關，一關一隻 Boss（mix 是這關會出現的小兵比例）
+const CHAPTERS = [
+  { map: 'hall', boss: 'shrug', mix: { teacher: 4, director: 3, chalk: 2 } },
+  { map: 'office', boss: 'hammer', mix: { teacher: 3, director: 3, chalk: 2, whistle: 2 } },
+  { map: 'forest', boss: 'wings', mix: { teacher: 3, director: 2, chalk: 2, drill: 2 } },
+  { map: 'lab', boss: 'dash', mix: { teacher: 2, director: 2, chalk: 3, whistle: 2, drill: 1 } },
+  { map: 'stage', boss: 'dj', mix: { teacher: 2, director: 2, chalk: 2, whistle: 3, drill: 2 } },
+  { map: 'cave', boss: 'cave', mix: { teacher: 2, director: 1, chalk: 2, whistle: 2, drill: 3 } },
+  { map: 'school', boss: 'speech', mix: { teacher: 2, director: 2, chalk: 2, whistle: 2, drill: 2 } },
+];
+let chapter = 0, cleared = 0;
+try { cleared = Math.min(CHAPTERS.length, +localStorage.getItem('tbxlt-chap') || 0); } catch (_) {}
+function saveCleared(n) { cleared = Math.max(cleared, n); try { localStorage.setItem('tbxlt-chap', cleared); } catch (_) {} }
+function buildMap(id) {
+  MAP = MAPS[id] ? id : 'school';
+  props.length = 0; solids.length = 0;
+  const R = rng(20261026 + Object.keys(MAPS).indexOf(MAP) * 7919);
+  const g = ground.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0);
+  props.push({ type: 'statue', x: STATUE.x, y: STATUE.y }); solids.push({ x: STATUE.x, y: STATUE.y - 6, r: 36 });
+  // 主角出生點、銅像附近留空
+  const clear = (x, y, pad = 0) => Math.hypot(x - CX, y - (PLAZA_Y1 + 60)) > 170 + pad && Math.hypot(x - STATUE.x, y - STATUE.y) > 120 + pad && !props.some(p => Math.hypot(p.x - x, p.y - y) < 95 + pad);
+  const scatter = (n, type, r, y0 = PLAZA_Y1 + 60, extra = () => ({})) => {
+    for (let k = 0, tries = 0; k < n && tries < 5000; tries++) {
+      const x = 120 + R() * (WORLD.w - 240), y = y0 + R() * (WORLD.h - y0 - 130);
+      if (!clear(x, y)) continue;
+      const s = .85 + R() * .45, e = { type, x, y, s, hue: R(), ...extra() }; props.push(e); if (r) solids.push({ x, y, r: r * s }); k++;
+    }
+  };
+  const wallSigns = (list, col, txt) => { g.font = '900 30px ' + FONT_D; g.textAlign = 'center'; g.textBaseline = 'middle'; list.forEach(([x, t]) => { g.fillStyle = col; g.strokeStyle = '#3b2716'; g.lineWidth = 3; g.fillRect(x - 90, 30, 180, 48); g.strokeRect(x - 90, 30, 180, 48); g.fillStyle = txt; g.fillText(t, x, 55); }); };
+  const sideWalls = col => { g.fillStyle = col; g.fillRect(0, WORLD.h - 50, WORLD.w, 50); g.fillRect(0, BLD_H, 50, WORLD.h); g.fillRect(WORLD.w - 50, BLD_H, 50, WORLD.h); g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(50, WORLD.h - 58, WORLD.w - 100, 8); g.fillRect(50, BLD_H, 8, WORLD.h); g.fillRect(WORLD.w - 58, BLD_H, 8, WORLD.h); };
+  const tiles = (y0, y1, size, a, b) => { for (let y = y0; y < y1; y += size) for (let x = 0; x < WORLD.w; x += size) { g.fillStyle = ((x + y) / size) % 2 ? a : b; g.fillRect(x, y, size, size); } };
+  const planks = (y0, y1, col, line) => { g.fillStyle = col; g.fillRect(0, y0, WORLD.w, y1 - y0); g.strokeStyle = line; g.lineWidth = 2; for (let y = y0; y < y1; y += 34) { g.beginPath(); g.moveTo(0, y); g.lineTo(WORLD.w, y); g.stroke(); const off = (y / 34 % 3) * 70; for (let x = off; x < WORLD.w; x += 210) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 34); g.stroke(); } } };
+  if (MAP === 'school') {
 props.push({ type: 'flag', x: FLAG.x, y: FLAG.y });
 solids.push({ x: FLAG.x - 44, y: FLAG.y - 6, r: 26 }, { x: FLAG.x, y: FLAG.y - 6, r: 26 }, { x: FLAG.x + 44, y: FLAG.y - 6, r: 26 });
 for (const [y, up] of [[COURT.y - 8, true], [COURT.y + COURT.h + 34, false]]) {
   props.push({ type: 'hoop', x: COURT.x + COURT.w / 2, y, up }); solids.push({ x: COURT.x + COURT.w / 2, y, r: 9 });
 }
-// 舌我爺爺的銅像（廣場右邊），靠近就會復活
-const STATUE = { x: CX + 400, y: BLD_H + 140 };
-props.push({ type: 'statue', x: STATUE.x, y: STATUE.y }); solids.push({ x: STATUE.x, y: STATUE.y - 6, r: 36 });
 for (const x of [260, 620, 1900, 2200]) { props.push({ type: 'bench', x, y: PLAZA_Y1 - 26 }); solids.push({ x: x - 18, y: PLAZA_Y1 - 26, r: 14 }, { x: x + 18, y: PLAZA_Y1 - 26, r: 14 }); }
 for (let n = 0, tries = 0; n < 60 && tries < 6000; tries++) {
   const x = 110 + R() * (WORLD.w - 220), y = PLAZA_Y1 + 70 + R() * (WORLD.h - PLAZA_Y1 - 150);
@@ -540,10 +616,8 @@ for (let n = 0, tries = 0; n < 60 && tries < 6000; tries++) {
   n++;
 }
 
-// 地面（含校舍正面）預先畫好
-const ground = document.createElement('canvas'); ground.width = WORLD.w; ground.height = WORLD.h;
-(function paintGround() {
-  const g = ground.getContext('2d'), FONT_D = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+
+
   g.fillStyle = '#86bd4f'; g.fillRect(0, 0, WORLD.w, WORLD.h);
   for (let i = 0; i < 260; i++) { g.fillStyle = R() < .5 ? 'rgba(160,205,95,.35)' : 'rgba(95,150,55,.25)'; g.beginPath(); g.ellipse(R() * WORLD.w, R() * WORLD.h, 40 + R() * 120, 25 + R() * 70, R() * 3, 0, 7); g.fill(); }
   g.lineCap = 'round';
@@ -622,7 +696,144 @@ const ground = document.createElement('canvas'); ground.width = WORLD.w; ground.
   g.fillStyle = '#4f8a33'; g.fillRect(0, WORLD.h - 50, WORLD.w, 50); g.fillRect(0, BLD_H, 50, WORLD.h); g.fillRect(WORLD.w - 50, BLD_H, 50, WORLD.h);
   g.fillStyle = '#5e9c3c'; for (let x = 0; x < WORLD.w; x += 36) { g.beginPath(); g.arc(x + 18, WORLD.h - 50, 20, 0, 7); g.fill(); }
   for (let y = BLD_H; y < WORLD.h; y += 36) { g.beginPath(); g.arc(50, y + 18, 20, 0, 7); g.fill(); g.beginPath(); g.arc(WORLD.w - 50, y + 18, 20, 0, 7); g.fill(); }
-})();
+
+  } else if (MAP === 'hall') { // 教務處走廊：磁磚地、教室門、盆栽、長椅
+    tiles(BLD_H, WORLD.h, 80, '#dcd8cf', '#cec9be');
+    g.fillStyle = 'rgba(255,255,255,.16)'; for (let x = 0; x < WORLD.w; x += 160) g.fillRect(x + 20, BLD_H, 30, WORLD.h);
+    g.fillStyle = '#efe4cc'; g.fillRect(0, 0, WORLD.w, BLD_H); g.fillStyle = '#7a9a6a'; g.fillRect(0, BLD_H - 70, WORLD.w, 70);
+    for (let x = 120; x < WORLD.w; x += 340) { g.fillStyle = '#8a5a2e'; g.fillRect(x, BLD_H - 170, 90, 170); g.strokeStyle = '#3b2716'; g.lineWidth = 3; g.strokeRect(x, BLD_H - 170, 90, 170); g.fillStyle = '#9fd0e6'; g.fillRect(x + 15, BLD_H - 155, 60, 50); g.strokeRect(x + 15, BLD_H - 155, 60, 50);
+      g.fillStyle = '#9fd0e6'; g.fillRect(x + 140, BLD_H - 200, 130, 80); g.strokeRect(x + 140, BLD_H - 200, 130, 80); g.beginPath(); g.moveTo(x + 205, BLD_H - 200); g.lineTo(x + 205, BLD_H - 120); g.stroke(); }
+    wallSigns([[CX, '教　務　處'], [CX - 700, '一年一班'], [CX + 700, '輔　導　室']], '#2f4f3a', '#f2d27a');
+    sideWalls('#b9ae98');
+    for (let x = 300; x < WORLD.w - 200; x += 420) if (Math.abs(x - CX) > 200) { props.push({ type: 'bench', x, y: PLAZA_Y1 - 26 }); solids.push({ x: x - 18, y: PLAZA_Y1 - 26, r: 14 }, { x: x + 18, y: PLAZA_Y1 - 26, r: 14 }); }
+    scatter(22, 'pot', 20);
+  } else if (MAP === 'office') { // 系辦公室：木地板、一組一組的辦公桌
+    planks(BLD_H, WORLD.h, '#c99a62', 'rgba(90,55,25,.28)');
+    g.fillStyle = '#8f9aa5'; g.fillRect(0, BLD_H, WORLD.w, PLAZA_Y1 - BLD_H); g.fillStyle = 'rgba(255,255,255,.06)'; for (let i = 0; i < 400; i++) g.fillRect(R() * WORLD.w, BLD_H + R() * (PLAZA_Y1 - BLD_H), 4, 4);
+    g.fillStyle = '#e8e0d0'; g.fillRect(0, 0, WORLD.w, BLD_H);
+    for (let x = 80; x < WORLD.w; x += 460) { g.fillStyle = '#b5824e'; g.fillRect(x, 110, 260, 130); g.strokeStyle = '#3b2716'; g.lineWidth = 3; g.strokeRect(x, 110, 260, 130);
+      for (let k = 0; k < 6; k++) { g.fillStyle = ['#fff', '#ffe98a', '#bde4ff', '#ffc4d0'][k % 4]; g.save(); g.translate(x + 30 + (k % 3) * 75, 128 + Math.floor(k / 3) * 56); g.rotate((R() - .5) * .2); g.fillRect(0, 0, 56, 44); g.restore(); } }
+    wallSigns([[CX, '系 辦 公 室']], '#5b3f7a', '#fff');
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(CX + 260, 55, 24, 0, 7); g.fill(); g.strokeStyle = '#3b2716'; g.lineWidth = 3; g.stroke();
+    sideWalls('#7a5a3a');
+    const spots = []; for (let y = PLAZA_Y1 + 200; y < WORLD.h - 200; y += 330) for (let x = 260; x < WORLD.w - 200; x += 420) spots.push([x + (R() - .5) * 60, y + (R() - .5) * 40]);
+    for (const [x, y] of spots) if (clear(x, y, 40)) for (const [dx, dy, f] of [[-48, 0, 1], [48, 0, -1]]) { props.push({ type: 'desk', x: x + dx, y: y + dy, face: f, hue: R() }); solids.push({ x: x + dx, y: y + dy - 8, r: 30 }); }
+    scatter(8, 'pot', 20);
+  } else if (MAP === 'forest') { // 後山樹林：深綠草地、很多樹、石頭
+    g.fillStyle = '#5f9a3e'; g.fillRect(0, 0, WORLD.w, WORLD.h);
+    for (let i = 0; i < 300; i++) { g.fillStyle = R() < .5 ? 'rgba(120,180,80,.3)' : 'rgba(40,90,30,.3)'; g.beginPath(); g.ellipse(R() * WORLD.w, R() * WORLD.h, 40 + R() * 120, 25 + R() * 70, R() * 3, 0, 7); g.fill(); }
+    g.lineCap = 'round'; for (let i = 0; i < 9000; i++) { const x = R() * WORLD.w, y = R() * WORLD.h; g.strokeStyle = R() < .5 ? 'rgba(40,90,30,.55)' : 'rgba(150,200,100,.45)'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (R() - .5) * 4, y - 6 - R() * 6); g.stroke(); }
+    g.fillStyle = '#b08d5c'; g.fillRect(0, BLD_H, WORLD.w, PLAZA_Y1 - BLD_H); g.fillStyle = 'rgba(90,60,30,.25)'; for (let i = 0; i < 500; i++) { g.beginPath(); g.arc(R() * WORLD.w, BLD_H + R() * (PLAZA_Y1 - BLD_H), 2 + R() * 4, 0, 7); g.fill(); }
+    const sky = g.createLinearGradient(0, 0, 0, BLD_H); sky.addColorStop(0, '#9fd4e8'); sky.addColorStop(1, '#d8f0e0'); g.fillStyle = sky; g.fillRect(0, 0, WORLD.w, BLD_H);
+    for (let layer = 0; layer < 3; layer++) { g.fillStyle = ['#4f8a5a', '#3a7040', '#2c5a32'][layer]; for (let x = -40; x < WORLD.w + 60; x += 70 + R() * 40) { g.beginPath(); g.arc(x, BLD_H - 40 - layer * 30 + R() * 30, 60 + R() * 40, 0, 7); g.fill(); } }
+    g.fillStyle = '#2c5a32'; g.fillRect(0, BLD_H - 40, WORLD.w, 40);
+    g.fillStyle = '#3e6b2a'; g.fillRect(0, WORLD.h - 50, WORLD.w, 50); g.fillRect(0, BLD_H, 50, WORLD.h); g.fillRect(WORLD.w - 50, BLD_H, 50, WORLD.h);
+    for (let n = 0, tries = 0; n < 95 && tries < 8000; tries++) { const x = 110 + R() * (WORLD.w - 220), y = PLAZA_Y1 + 60 + R() * (WORLD.h - PLAZA_Y1 - 140); if (!clear(x, y, 10)) continue; const s = .85 + R() * .6, kind = R() < .25 ? 'bush' : 'tree'; props.push({ type: kind, x, y, s, hue: R() }); solids.push({ x, y, r: kind === 'tree' ? 22 * s : 26 * s }); n++; }
+    scatter(14, 'rock', 24);
+  } else if (MAP === 'lab') { // 電腦教室：藍灰地毯、一排一排電腦桌
+    g.fillStyle = '#5b6f86'; g.fillRect(0, BLD_H, WORLD.w, WORLD.h);
+    g.strokeStyle = 'rgba(255,255,255,.06)'; g.lineWidth = 2; for (let x = 0; x < WORLD.w; x += 60) { g.beginPath(); g.moveTo(x, BLD_H); g.lineTo(x, WORLD.h); g.stroke(); } for (let y = BLD_H; y < WORLD.h; y += 60) { g.beginPath(); g.moveTo(0, y); g.lineTo(WORLD.w, y); g.stroke(); }
+    g.fillStyle = '#76889c'; g.fillRect(0, BLD_H, WORLD.w, PLAZA_Y1 - BLD_H);
+    g.fillStyle = '#e4e9ee'; g.fillRect(0, 0, WORLD.w, BLD_H);
+    g.fillStyle = '#fff'; g.strokeStyle = '#3b2716'; g.lineWidth = 4; g.fillRect(CX - 420, 100, 840, 160); g.strokeRect(CX - 420, 100, 840, 160);
+    g.fillStyle = '#2f6fb0'; g.font = '900 44px ' + FONT_D; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('AI 一條龍　期末上機考', CX, 180);
+    for (const x of [300, 700, WORLD.w - 700, WORLD.w - 300]) { g.fillStyle = '#9fd0e6'; g.fillRect(x - 80, 110, 160, 110); g.strokeRect(x - 80, 110, 160, 110); }
+    wallSigns([[CX, '電 腦 教 室']], '#1b7f9c', '#fff');
+    sideWalls('#3e4c5c');
+    for (let y = PLAZA_Y1 + 180; y < WORLD.h - 150; y += 210) for (let x = 200; x < WORLD.w - 150; x += 150) { if (Math.abs(x - CX) < 140 || Math.abs(x - 700) < 60 || Math.abs(x - (WORLD.w - 700)) < 60) continue; if (!clear(x, y, -40)) continue; props.push({ type: 'pc', x, y, hue: R() }); solids.push({ x, y: y - 6, r: 30 }); }
+  } else if (MAP === 'stage') { // 禮堂：紅色布幕舞台、木地板、一排一排椅子
+    planks(BLD_H, WORLD.h, '#b98a54', 'rgba(80,45,20,.25)');
+    g.fillStyle = '#7a4a26'; g.fillRect(0, BLD_H, WORLD.w, PLAZA_Y1 - BLD_H); g.fillStyle = '#8f5a30'; for (let x = 0; x < WORLD.w; x += 120) g.fillRect(x, BLD_H, 116, PLAZA_Y1 - BLD_H - 10); g.fillStyle = '#5a3418'; g.fillRect(0, PLAZA_Y1 - 14, WORLD.w, 14);
+    g.fillStyle = '#7d141d'; g.fillRect(0, 0, WORLD.w, BLD_H);
+    for (let x = 0; x < WORLD.w; x += 46) { const gr = g.createLinearGradient(x, 0, x + 46, 0); gr.addColorStop(0, '#a3202a'); gr.addColorStop(.5, '#cf3a3f'); gr.addColorStop(1, '#8a1820'); g.fillStyle = gr; g.fillRect(x, 0, 46, BLD_H); }
+    g.fillStyle = '#e8b04a'; g.fillRect(0, 0, WORLD.w, 34); for (let x = 0; x < WORLD.w; x += 60) { g.beginPath(); g.moveTo(x, 34); g.lineTo(x + 30, 60); g.lineTo(x + 60, 34); g.fill(); }
+    g.fillStyle = 'rgba(255,240,170,.18)'; for (const x of [CX - 600, CX, CX + 600]) { g.beginPath(); g.ellipse(x, BLD_H - 20, 220, 50, 0, 0, 7); g.fill(); }
+    wallSigns([[CX, '禮　　堂']], '#3b2716', '#ffd54a');
+    sideWalls('#4a2a14');
+    for (let y = PLAZA_Y1 + 230; y < WORLD.h - 140; y += 170) for (let x = 230; x < WORLD.w - 200; x += 66) { if (Math.abs(x - CX) < 130 || Math.abs(x - 640) < 60 || Math.abs(x - (WORLD.w - 640)) < 60) continue; props.push({ type: 'seat', x, y, hue: R() }); solids.push({ x, y: y - 6, r: 20 }); }
+  } else if (MAP === 'cave') { // 後山洞穴：土地、石頭、骨頭、營火，牆上有壁畫
+    g.fillStyle = '#9a7a55'; g.fillRect(0, 0, WORLD.w, WORLD.h);
+    for (let i = 0; i < 400; i++) { g.fillStyle = R() < .5 ? 'rgba(120,90,60,.35)' : 'rgba(170,140,100,.3)'; g.beginPath(); g.ellipse(R() * WORLD.w, R() * WORLD.h, 30 + R() * 110, 20 + R() * 60, R() * 3, 0, 7); g.fill(); }
+    for (let i = 0; i < 2600; i++) { g.fillStyle = R() < .5 ? 'rgba(80,60,40,.5)' : 'rgba(200,175,140,.5)'; g.beginPath(); g.arc(R() * WORLD.w, BLD_H + R() * WORLD.h, 1.5 + R() * 3, 0, 7); g.fill(); }
+    g.fillStyle = '#7d6248'; g.fillRect(0, BLD_H, WORLD.w, PLAZA_Y1 - BLD_H);
+    g.fillStyle = '#6d5640'; g.fillRect(0, 0, WORLD.w, BLD_H);
+    for (let i = 0; i < 160; i++) { g.fillStyle = R() < .5 ? 'rgba(50,35,25,.35)' : 'rgba(150,120,90,.3)'; g.beginPath(); g.ellipse(R() * WORLD.w, R() * BLD_H, 40 + R() * 90, 20 + R() * 40, R() * 3, 0, 7); g.fill(); }
+    g.fillStyle = '#4a3828'; g.beginPath(); g.moveTo(0, BLD_H); for (let x = 0; x <= WORLD.w; x += 80) g.lineTo(x, BLD_H - 10 - R() * 30); g.lineTo(WORLD.w, BLD_H); g.fill();
+    // 壁畫：猛獁象、拿矛的人、太陽、手印
+    g.strokeStyle = '#5a2412'; g.fillStyle = '#8f3a1c'; g.lineWidth = 6; g.lineCap = 'round';
+    for (let x = 200; x < WORLD.w; x += 520) {
+      g.beginPath(); g.ellipse(x, 140, 70, 42, 0, 0, 7); g.fill(); g.fillRect(x - 50, 160, 14, 50); g.fillRect(x + 30, 160, 14, 50); g.beginPath(); g.moveTo(x + 62, 130); g.quadraticCurveTo(x + 100, 160, x + 90, 210); g.stroke();
+      for (const px of [x + 170, x + 230]) { g.beginPath(); g.arc(px, 110, 10, 0, 7); g.fill(); g.beginPath(); g.moveTo(px, 120); g.lineTo(px, 170); g.moveTo(px, 135); g.lineTo(px - 20, 150); g.moveTo(px, 135); g.lineTo(px + 24, 118); g.moveTo(px, 170); g.lineTo(px - 14, 200); g.moveTo(px, 170); g.lineTo(px + 14, 200); g.stroke(); }
+      g.beginPath(); g.moveTo(x + 254, 100); g.lineTo(x + 254, 190); g.stroke();
+      g.beginPath(); g.arc(x + 360, 90, 26, 0, 7); g.fill(); for (let k = 0; k < 8; k++) { const a = k / 8 * 6.28; g.beginPath(); g.moveTo(x + 360 + Math.cos(a) * 34, 90 + Math.sin(a) * 34); g.lineTo(x + 360 + Math.cos(a) * 48, 90 + Math.sin(a) * 48); g.stroke(); }
+      g.fillStyle = 'rgba(230,200,160,.55)'; g.beginPath(); g.ellipse(x + 430, 200, 18, 24, 0, 0, 7); g.fill(); g.fillStyle = '#8f3a1c';
+    }
+    wallSigns([[CX, '山　頂　洞']], '#5a3a1a', '#ffd54a');
+    sideWalls('#5a4838');
+    scatter(26, 'rock', 26); scatter(10, 'bones', 0); scatter(5, 'fire', 22);
+  }
+  if (MAP !== 'school') { // 不是操場時，地上加一點陰影讓畫面不要太平
+    const vg = g.createLinearGradient(0, BLD_H, 0, BLD_H + 60); vg.addColorStop(0, 'rgba(0,0,0,.18)'); vg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = vg; g.fillRect(0, BLD_H, WORLD.w, 60);
+  }
+}
+// ---------- 各地圖的道具 ----------
+function drawPot(p) {
+  const s = p.s || 1; ctx.save(); ctx.translate(p.x, p.y); ctx.scale(s, s); drawShadow(0, 2, 22, 7);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.fillStyle = '#c0643a'; ctx.beginPath(); ctx.moveTo(-16, -26); ctx.lineTo(16, -26); ctx.lineTo(12, 0); ctx.lineTo(-12, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = p.hue < .5 ? '#3f8a33' : '#4f9a46'; for (const [x, y, r] of [[-12, -40, 13], [12, -42, 13], [0, -56, 15], [0, -36, 12]]) { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke(); }
+  ctx.restore();
+}
+function drawDesk(p) {
+  ctx.save(); ctx.translate(p.x, p.y); drawShadow(0, 4, 46, 10);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2;
+  ctx.fillStyle = '#5a4030'; ctx.fillRect(-36, -26, 5, 26); ctx.fillRect(31, -26, 5, 26);
+  ctx.fillStyle = '#d8b07a'; ctx.beginPath(); ctx.roundRect(-42, -38, 84, 16, 3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#3b3f48'; ctx.beginPath(); ctx.roundRect(-14 * p.face - 14, -76, 28, 22, 3); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#7fd0ff'; ctx.fillRect(-14 * p.face - 11, -73, 22, 16); ctx.fillStyle = '#3b3f48'; ctx.fillRect(-14 * p.face - 3, -54, 6, 16);
+  ctx.fillStyle = '#fff'; for (let i = 0; i < 3; i++) { ctx.fillRect(10 * p.face - 10 + i * 2, -46 - i * 3, 22, 6); } ctx.strokeRect(10 * p.face - 6, -52, 22, 6);
+  ctx.fillStyle = p.hue < .5 ? '#c0392b' : '#2f6fb0'; ctx.beginPath(); ctx.arc(-30 * p.face, -44, 6, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawPC(p) {
+  ctx.save(); ctx.translate(p.x, p.y); drawShadow(0, 4, 40, 9);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2;
+  ctx.fillStyle = '#9aa3ab'; ctx.fillRect(-32, -24, 5, 24); ctx.fillRect(27, -24, 5, 24);
+  ctx.fillStyle = '#e4e9ee'; ctx.beginPath(); ctx.roundRect(-38, -34, 76, 14, 3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#2a2f38'; ctx.beginPath(); ctx.roundRect(-24, -78, 48, 34, 4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = p.hue < .3 ? '#1fbf6a' : p.hue < .6 ? '#4fa3ff' : '#ffd54a'; ctx.fillRect(-20, -74, 40, 26);
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.font = '900 10px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('AI', 0, -61);
+  ctx.fillStyle = '#2a2f38'; ctx.fillRect(-4, -44, 8, 10); ctx.fillStyle = '#c9ced4'; ctx.beginPath(); ctx.roundRect(-18, -30, 30, 6, 2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawSeat(p) {
+  ctx.save(); ctx.translate(p.x, p.y); drawShadow(0, 3, 26, 7);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.fillStyle = '#3b2716'; ctx.fillRect(-20, -16, 4, 16); ctx.fillRect(16, -16, 4, 16);
+  ctx.fillStyle = '#b0302c'; ctx.beginPath(); ctx.roundRect(-24, -26, 48, 12, 4); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(-24, -58, 48, 32, 6); ctx.fill(); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillRect(-18, -54, 36, 6);
+  ctx.restore();
+}
+function drawRock(p) {
+  const s = p.s || 1; ctx.save(); ctx.translate(p.x, p.y); ctx.scale(s, s); drawShadow(0, 2, 32, 9);
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.2; ctx.fillStyle = p.hue < .5 ? '#8c8478' : '#7a7064';
+  ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(-26, -26); ctx.lineTo(-6, -40); ctx.lineTo(18, -34); ctx.lineTo(30, -12); ctx.lineTo(28, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.beginPath(); ctx.moveTo(-20, -24); ctx.lineTo(-6, -34); ctx.lineTo(6, -30); ctx.lineTo(-10, -20); ctx.fill();
+  ctx.restore();
+}
+function drawBones(p) {
+  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.hue * 3); ctx.fillStyle = '#efe6cf'; ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
+  for (const [x, y, a] of [[0, 0, 0], [10, 6, 1.2]]) { ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillRect(-12, -2.5, 24, 5); ctx.strokeRect(-12, -2.5, 24, 5); for (const [bx, by] of [[-13, -3], [-13, 3], [13, -3], [13, 3]]) { ctx.beginPath(); ctx.arc(bx, by, 3.6, 0, 7); ctx.fill(); ctx.stroke(); } ctx.restore(); }
+  ctx.restore();
+}
+function drawFire(p, time) {
+  ctx.save(); ctx.translate(p.x, p.y); drawShadow(0, 2, 30, 9);
+  const gl = ctx.createRadialGradient(0, -20, 4, 0, -20, 90); gl.addColorStop(0, 'rgba(255,180,60,.45)'); gl.addColorStop(1, 'rgba(255,180,60,0)'); ctx.fillStyle = gl; ell(0, -20, 90, 70); ctx.fill();
+  ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.fillStyle = '#6b4424'; for (const a of [-.5, .5]) { ctx.save(); ctx.rotate(a); ctx.beginPath(); ctx.roundRect(-26, -6, 52, 10, 4); ctx.fill(); ctx.stroke(); ctx.restore(); }
+  const f = Math.sin(time * 14 + p.x) * 3;
+  ctx.fillStyle = '#ff7a1f'; ctx.beginPath(); ctx.moveTo(-16, -2); ctx.quadraticCurveTo(-18, -26, f, -50); ctx.quadraticCurveTo(18, -26, 16, -2); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#ffd54a'; ctx.beginPath(); ctx.moveTo(-8, -2); ctx.quadraticCurveTo(-8, -18, f * .6, -32); ctx.quadraticCurveTo(8, -18, 8, -2); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+const PROP_DRAW = { pot: drawPot, desk: drawDesk, pc: drawPC, seat: drawSeat, rock: drawRock, bones: drawBones, fire: drawFire };
+buildMap('school');
 const BOUND = { x0: 78, y0: BLD_H + 26, x1: WORLD.w - 78, y1: WORLD.h - 70 };
 
 // ---------- 輸入 ----------
@@ -965,7 +1176,14 @@ function collide(b) {
 const LINES = {
   teacher: ['作業交了沒？', '這題上次考過了！', '上課不准睡覺！', '你哪一班的？', '考卷拿回去訂正', '安靜！吵什麼吵', '這個會考喔', '下課來找我'],
   director: ['制服沒紮好！', '頭髮太長了！', '走廊不准跑！', '記你一支警告！', '升旗不准遲到！', '鐘響了沒聽到嗎？', '書包呢？', '叫你們導師來'],
+  chalk: ['上黑板寫！', '粉筆接好！', '看黑板！', '誰在講話？', '這題會考！'],
+  whistle: ['嗶嗶！集合！', '服裝儀容檢查！', '不准跑！嗶——', '排好隊！'],
+  drill: ['立正！', '稍息！', '跑操場十圈！', '給我站好！', '動作快！'],
 };
+// 小兵種類：一般老師、主任（近身打）、粉筆老師（遠遠丟粉筆）、吹哨糾察（嗶一聲震開身邊）、教官（瞄準後直線衝刺）
+const GRUNT_MIX = () => MODE.id === 'story' ? CHAPTERS[chapter].mix : { teacher: 4, director: 3, chalk: bossIndex >= 1 ? 2 : 0, whistle: bossIndex >= 2 ? 2 : 0, drill: bossIndex >= 3 ? 2 : 0 };
+function pickKind() { const m = GRUNT_MIX(); let t = Math.random() * Object.values(m).reduce((a, b) => a + b, 0); for (const k in m) { t -= m[k]; if (t < 0) return k; } return 'teacher'; }
+const GRUNT_BODY = { teacher: '#dde9f4', director: '#2f3e5c', chalk: '#6b9a62', whistle: '#e0662f', drill: '#6b7440' };
 const OUCH = ['我要記你大過！', '叫你家長來！', '我的眼鏡！', '反了反了！', '夭壽喔～', '我要寫聯絡簿！', '我的腰！！'];
 const FLEE = ['你給我記住！', '我要跟校長講！', '下課來辦公室！', '哼！不跟你計較'];
 const PANTS = ['#4a4a52', '#5b4a3a', '#3f4f66', '#6b6a5a'];
@@ -982,16 +1200,18 @@ function freeSpot(minHero, maxHero) {
 }
 function spawnOld(near) {
   const [x, y] = near ? freeSpot(260, 650) : freeSpot(480, 1e9);
-  return { x, y, vx: 0, vy: 0, r: 15, face: 1, state: 'idle', t: rand(.1, .6), tx: x, ty: y, z: 0, vz: 0, spin: 0, walkT: 0,
+  const o = { x, y, vx: 0, vy: 0, r: 15, face: 1, state: 'idle', t: rand(.1, .6), tx: x, ty: y, z: 0, vz: 0, spin: 0, walkT: 0,
     say: null, sayCd: rand(1, 4), alpha: 0, pants: pick(PANTS), bald: Math.random() < .55, bounces: 0, lie: 1,
-    kind: Math.random() < .4 ? 'director' : 'teacher', bouncy: false, atkCd: rand(1, 2.5), hp: gruntHP(), hitCd: 0 };
+    kind: pickKind(), bouncy: false, atkCd: rand(1, 2.5), hp: gruntHP(), hitCd: 0 };
+  if (o.kind === 'drill') o.pants = '#4f5530';
+  return o;
 }
 function say(o, list, dur = 2.2) { o.say = { text: pick(list), t: dur }; }
 function addScore(n) {
   score += n; $('score').textContent = score;
   if (score > best) { best = score; $('best').textContent = best; try { localStorage.setItem(bestKey(), best); } catch (_) {} }
 }
-const STANDING = ['walk', 'idle', 'flee', 'chase', 'windup', 'swing'];
+const STANDING = ['walk', 'idle', 'flee', 'chase', 'windup', 'swing', 'dash'];
 // ---------- 舌我爺爺：看不下去學校變成這樣，復活幫主角 ----------
 const GRANDPA_LINES = ['我要說話！', '我要說話！！', '讓我說話！', '學校不是這樣辦的！'];
 let ally = null, statueAwake = false, allyIntro = 0, allySaved = false;
@@ -1370,6 +1590,17 @@ function updateOld(o, dt) {
       break;
     case 'windup':
       o.t -= dt; o.vx = o.vy = 0;
+      if (o.kind === 'drill' && o.t > .22) { const n = Math.hypot(hero.x - o.x, hero.y - o.y) || 1; o.ax = (hero.x - o.x) / n; o.ay = (hero.y - o.y) / n; o.face = o.ax > 0 ? 1 : -1; } // 最後一下才鎖定方向
+      if (o.t <= 0 && o.kind === 'chalk') { // 丟粉筆
+        const a = Math.atan2(hero.y - o.y, hero.x - o.x);
+        shots.push({ x: o.x + o.face * 16, y: o.y - 50, vx: Math.cos(a) * 400, vy: Math.sin(a) * 400, life: 2, rot: a, spin: 18, kind: 'chalk', weak: true });
+        tone(1200, 800, .08, 'triangle', .06); o.state = 'swing'; o.t = .3; o.atkCd = rand(2.4, 3.4); break;
+      }
+      if (o.t <= 0 && o.kind === 'whistle') { // 嗶——！身邊一圈震開
+        waves.push({ x: o.x, y: o.y, r: 16, max: 140, hit: false, col: '#ff8a3d', weak: true });
+        tone(2800, 2600, .35, 'square', .06); pop('嗶——！', o.x, o.y - 110, 1); o.state = 'swing'; o.t = .35; o.atkCd = rand(3, 4); break;
+      }
+      if (o.t <= 0 && o.kind === 'drill') { o.state = 'dash'; o.t = .5; o.hitHero = false; tone(300, 700, .2, 'sawtooth', .06); break; }
       if (o.t <= 0) {
         o.state = 'swing'; o.t = 0.25;
         const fx = o.x + o.face * 22;
@@ -1379,6 +1610,12 @@ function updateOld(o, dt) {
         }
       }
       break;
+    case 'dash': // 教官衝刺：撞到主角扣 1 顆心，衝完要喘一下
+      o.t -= dt; o.vx = o.ax * 560; o.vy = o.ay * 560; speed = 560;
+      if (Math.random() < dt * 20) puff(o.x - o.ax * 14, o.y, .8);
+      if (!o.hitHero && dh < o.r + hero.r + 10) { o.hitHero = true; if (hurtHero(o.ax, o.ay, .4, 560, 1)) pop('撞！', hero.x, hero.y - 100, 1.1); }
+      if (o.t <= 0) { o.state = 'idle'; o.t = 1.1; o.atkCd = rand(2.6, 3.6); }
+      break;
     case 'swing':
       o.t -= dt; o.vx = o.vy = 0;
       if (o.t <= 0) { o.state = 'idle'; o.t = rand(.6, 1.2); o.atkCd = rand(2, 3.2); }
@@ -1387,7 +1624,16 @@ function updateOld(o, dt) {
       if (o.state === 'chase') { o.tx = hero.x; o.ty = hero.y; }
       const dx = o.tx - o.x, dy = o.ty - o.y, d = Math.hypot(dx, dy);
       speed = (o.state === 'chase' ? 86 : 52) * STAGE.speed * (1 + .07 * (bossRound - 1)); o.t -= dt;
-      if (o.state === 'chase' && d < 64 && o.atkCd <= 0 && !hero.dead && olds.filter(p => p.state === 'windup' || p.state === 'swing').length < 2) { // 靠近了就準備出手（同時最多 2 個人出手）
+      const ready = o.state === 'chase' && o.atkCd <= 0 && !hero.dead;
+      if (o.kind === 'chalk' && o.state === 'chase') { // 跟主角保持距離，站遠遠的丟粉筆
+        o.face = hero.x > o.x ? 1 : -1;
+        if (ready && d < 340) { o.state = 'windup'; o.t = .55; o.vx = o.vy = 0; say(o, ['看粉筆！', '接好！'], .9); break; }
+        if (d < 170) { o.vx = -dx / d * speed * .8; o.vy = -dy / d * speed * .8; break; }
+        if (d < 260) { o.vx = o.vy = 0; break; }
+      }
+      if (o.kind === 'drill' && ready && d < 380) { o.state = 'windup'; o.t = .85; o.vx = o.vy = 0; say(o, ['立正！', '給我站好！'], 1); break; }
+      if (o.kind === 'whistle' && ready && d < 125) { o.state = 'windup'; o.t = .8; o.vx = o.vy = 0; say(o, ['集合！', '嗶——！'], .9); break; }
+      if ((o.kind === 'teacher' || o.kind === 'director') && o.state === 'chase' && d < 64 && o.atkCd <= 0 && !hero.dead && olds.filter(p => p.state === 'windup' || p.state === 'swing').length < 2) { // 靠近了就準備出手（同時最多 2 個人出手）
         o.state = 'windup'; o.t = 0.5; o.face = hero.x > o.x ? 1 : -1; o.vx = o.vy = 0;
         say(o, o.kind === 'director' ? ['給我站住！', '你過來！'] : ['看鞭！', '手伸出來！'], 1);
       }
@@ -1825,9 +2071,15 @@ function updateBoss(dt) {
     case 'gone':
       b.alpha -= dt * 1.5;
       if (b.alpha <= 0) {
-        const finale = b.def.key === 'speech' && bossRound === 1 && (MODE.id === 'story' || MODE.id === 'bossrush');
         boss = null; $('bossBar').hidden = true; nextBossAt = score + 5; bossWait = 0;
+        if (MODE.id === 'story') { // 闖關：打倒這關的 Boss 就過關
+          saveCleared(chapter + 1);
+          if (chapter === CHAPTERS.length - 1) showEnding(); else showStageClear();
+          return;
+        }
+        const finale = b.def.key === 'speech' && bossRound === 1 && MODE.id === 'bossrush';
         bossIndex++; if (bossIndex % BOSSES.length === 0) bossRound++;
+        if (MODE.id === 'endless' || MODE.id === 'bossrush') changeMap(CHAPTERS[bossIndex % CHAPTERS.length].map); // 每打倒一隻就換到下一張地圖
         if (finale) showEnding();
       }
       return;
@@ -1850,7 +2102,7 @@ function updateWaves(dt) {
   for (let i = waves.length - 1; i >= 0; i--) {
     const w = waves[i]; w.r += 480 * dt;
     const d = Math.hypot(hero.x - w.x, (hero.y - w.y) / .6);
-    if (!w.hit && Math.abs(d - w.r) < 34) { w.hit = true; stunHero((hero.x - w.x) / (d || 1), (hero.y - w.y) / (d || 1)); }
+    if (!w.hit && (w.weak ? d < w.r + 20 : Math.abs(d - w.r) < 34)) { w.hit = true; const nx = (hero.x - w.x) / (d || 1), ny = (hero.y - w.y) / (d || 1); if (w.weak) hurtHero(nx, ny, .35, 520, 1); else stunHero(nx, ny); }
     if (w.r > w.max) waves.splice(i, 1);
   }
   for (let i = slams.length - 1; i >= 0; i--) { slams[i].t += dt; if (slams[i].t > slams[i].dur) slams.splice(i, 1); }
@@ -1858,7 +2110,7 @@ function updateWaves(dt) {
     const s = shots[i]; s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
     let gone = s.life <= 0 || s.x < BOUND.x0 - 40 || s.x > BOUND.x1 + 40 || s.y < BOUND.y0 - 40 || s.y > BOUND.y1 + 40;
     if (!gone && hero.bumpT > 0 && Math.hypot(s.x - (hero.x + hero.dx * 34), s.y - (hero.y - 50)) < 50) { gone = true; pop('破！', s.x, s.y - 20, .9); burst(s.x, s.y); }
-    else if (!gone && Math.hypot(s.x - hero.x, s.y - (hero.y - 50)) < 36) { const n = Math.hypot(s.vx, s.vy) || 1; if (stunHero(s.vx / n, s.vy / n)) gone = true; }
+    else if (!gone && Math.hypot(s.x - hero.x, s.y - (hero.y - 50)) < 36) { const n = Math.hypot(s.vx, s.vy) || 1; if (s.weak ? hurtHero(s.vx / n, s.vy / n, .3, 380, 1) : stunHero(s.vx / n, s.vy / n)) gone = true; }
     if (gone) { puff(s.x, s.y + 40, 1); shots.splice(i, 1); }
   }
 }
@@ -2057,6 +2309,10 @@ function drawHero(time) {
 
 // 老師（淺藍襯衫、眼鏡、教鞭）和主任（深藍西裝、哨子、點名板）
 function drawOld(o, time) {
+  if (o.kind === 'drill' && o.state === 'windup' && o.ax !== undefined) { // 教官要衝的方向
+    ctx.save(); ctx.strokeStyle = 'rgba(226,65,47,.7)'; ctx.lineWidth = 6; ctx.setLineDash([12, 10]); ctx.lineDashOffset = -time * 60;
+    ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(o.x + o.ax * 290, o.y + o.ay * 290); ctx.stroke(); ctx.restore();
+  }
   ctx.save(); ctx.globalAlpha = Math.max(0, o.alpha);
   const z = o.z, isDir = o.kind === 'director';
   drawShadow(o.x, o.y + 1, 17 * (1 - Math.min(z / 400, .5)), 5.5);
@@ -2076,11 +2332,16 @@ function drawOld(o, time) {
   }
   ctx.translate(0, -bob);
   // 後手
-  limb(-6, -52, -11 - w * 3, -36, 5, isDir ? '#2f3e5c' : SKIN);
+  limb(-6, -52, -11 - w * 3, -36, 5, isDir ? '#2f3e5c' : o.kind === 'drill' ? '#6b7440' : SKIN);
   // 身體
   ctx.strokeStyle = INK; ctx.lineWidth = 2;
-  ctx.fillStyle = isDir ? '#2f3e5c' : '#dde9f4'; ell(1, -46, 14, 15); ctx.fill(); ctx.stroke();
-  if (isDir) {
+  ctx.fillStyle = GRUNT_BODY[o.kind] || '#dde9f4'; ell(1, -46, 14, 15); ctx.fill(); ctx.stroke();
+  if (o.kind === 'drill') { // 教官：軍裝口袋、皮帶
+    ctx.fillStyle = '#3b2716'; ctx.fillRect(-12, -36, 26, 4); ctx.fillStyle = '#ffd54a'; ctx.fillRect(0, -36, 5, 4);
+    ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 1.5; ctx.strokeRect(-6, -56, 8, 6); ctx.strokeRect(6, -56, 8, 6);
+  } else if (o.kind === 'whistle') { // 糾察：白色斜背帶
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-9, -58); ctx.lineTo(12, -36); ctx.stroke();
+  } else if (isDir) {
     ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(5, -60); ctx.lineTo(14, -52); ctx.lineTo(9, -40); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#c0392b'; ctx.beginPath(); ctx.moveTo(8, -57); ctx.lineTo(11, -57); ctx.lineTo(11.5, -45); ctx.lineTo(9.5, -42); ctx.lineTo(7.5, -45); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = '#e8e8e8'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(3, -58); ctx.lineTo(4, -48); ctx.stroke();
@@ -2098,6 +2359,19 @@ function drawOld(o, time) {
     ctx.fillStyle = '#fff'; ctx.fillRect(bx + 2, by + 3, 9, 12);
     ctx.strokeStyle = '#9aa'; ctx.lineWidth = 1; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(bx + 3, by + 6 + i * 3.5); ctx.lineTo(bx + 10, by + 6 + i * 3.5); ctx.stroke(); }
     limb(6, -53, bx + 3, by + 11, 5, '#2f3e5c');
+  } else if (o.kind === 'chalk') { // 粉筆：準備丟時舉高
+    const up = o.state === 'windup', hit = o.state === 'swing';
+    const hx = up ? 2 : hit ? 22 : 14, hy = up ? -90 : hit ? -56 : -46;
+    limb(6, -53, hx, hy, 5, '#6b9a62');
+    if (!hit) { ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.save(); ctx.translate(hx, hy); ctx.rotate(-.6); ctx.beginPath(); ctx.roundRect(-2, -9, 5, 12, 2); ctx.fill(); ctx.stroke(); ctx.restore(); }
+  } else if (o.kind === 'drill') { // 拳頭：衝刺時往前伸
+    const go = o.state === 'dash' || o.state === 'windup';
+    limb(6, -53, go ? 24 : 12, go ? -54 : -38, 5, '#6b7440'); ctx.fillStyle = SKIN; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ell(go ? 25 : 12, go ? -54 : -37, 4.5, 4.5); ctx.fill(); ctx.stroke();
+  } else if (o.kind === 'whistle') { // 哨子：準備吹時拿到嘴邊
+    const up = o.state === 'windup' || o.state === 'swing';
+    limb(6, -53, up ? 14 : 12, up ? -62 : -40, 5, SKIN);
+    ctx.fillStyle = '#c9ced4'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.roundRect(up ? 13 : 9, up ? -64 : -44, 9, 5, 2); ctx.fill(); ctx.stroke();
+    if (!up) { ctx.strokeStyle = '#e2412f'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(10, -44); ctx.quadraticCurveTo(4, -52, 6, -58); ctx.stroke(); }
   } else {
     // 教鞭：準備打人時舉到頭後面，打下去時往前揮
     const wag = o.state === 'chase' ? Math.sin(time * 14) * 5 : 0;
@@ -2126,6 +2400,12 @@ function drawOld(o, time) {
   ctx.fillStyle = '#e3a47c'; ell(14.5, -65, 3.2, 3); ctx.fill();
   if (isDir) { ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(8, -59); ctx.quadraticCurveTo(11, -61, 14, -59); ctx.stroke(); }
   else { ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ell(11, -60, 6.5, 3); ctx.fill(); ctx.stroke(); }
+  if (o.kind === 'drill' || o.kind === 'whistle') { // 教官的軍帽、糾察的紅帽子
+    ctx.fillStyle = o.kind === 'drill' ? '#5a6236' : '#d23a2a'; ctx.strokeStyle = INK; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(2, -76, 13.5, 7, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(12, -76, 9, 2.8, 0, 0, 7); ctx.fill(); ctx.stroke();
+    if (o.kind === 'drill') { ctx.fillStyle = '#ffd54a'; ell(1, -79, 2.5, 2.5); ctx.fill(); }
+  }
   ctx.restore();
   if (o.hp > 1 && STANDING.includes(o.state)) { // 頭上顯示還要撞幾下
     for (let i = 0; i < o.hp; i++) { ctx.fillStyle = '#e2412f'; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ell(o.x - (o.hp - 1) * 5 + i * 10, o.y - 92, 4, 4); ctx.fill(); ctx.stroke(); }
@@ -2524,6 +2804,11 @@ function drawShots(time) {
   for (const h of herds) if (h.go) drawMammoth(h, time);
   for (const s of shots) {
     if (s.kind === 'bone') { s.rot += (s.spin || 10) / 60; drawBone(s); continue; }
+    if (s.kind === 'chalk') { // 粉筆：白色小棒子，後面拖一點粉
+      s.rot += (s.spin || 18) / 60; ctx.save(); ctx.fillStyle = 'rgba(255,255,255,.45)'; ell(s.x - s.vx * .03, s.y - s.vy * .03, 8, 5); ctx.fill();
+      ctx.translate(s.x, s.y); ctx.rotate(s.rot); ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-11, -4, 22, 8, 3); ctx.fill(); ctx.stroke(); ctx.restore();
+      drawShadow(s.x, s.y + 50, 9, 3, .15); continue;
+    }
     ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.rot + Math.sin(time * 10 + s.x) * .08);
     if (s.kind) { // 夢的翅膀的音符和破碎的心
       ctx.font = '900 40px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 6; ctx.strokeStyle = '#fff';
@@ -2757,7 +3042,7 @@ function frame(now) {
           if (!boss && bossIndex < BOSSES.length && survT >= (bossIndex + 1) * 75) spawnBoss();
           if (left <= 0) { showEnding(); }
         }
-        else if (!boss) { bossWait += dt; if (MODE.id === 'bossrush' ? bossWait > 2.5 : (score >= nextBossAt || bossWait > (bossIndex > 0 ? 12 : 30))) spawnBoss(); }
+        else if (!boss) { bossWait += dt; if (MODE.id === 'bossrush' ? bossWait > 2.5 : (score >= nextBossAt || bossWait > (MODE.id === 'story' ? 75 : bossIndex > 0 ? 12 : 30))) spawnBoss(); }
         if (MODE.id === 'timed') {
           timeLeft -= realDt; const sec = Math.ceil(Math.max(0, timeLeft));
           if (sec !== +$('timeLeft').textContent) { $('timeLeft').textContent = sec; $('timerChip').classList.toggle('low', sec <= 10); }
@@ -2811,6 +3096,7 @@ function frame(now) {
     else if (e.type === 'flag') drawFlag(e, time);
     else if (e.type === 'hoop') drawHoop(e);
     else if (e.type === 'statue') drawStatue(e, time);
+    else if (PROP_DRAW[e.type]) PROP_DRAW[e.type](e, time);
   }
   drawShots(time); drawTalks(); drawSkillFx(time); drawMinis(time); drawEvos(time);
   drawFx();
@@ -2867,6 +3153,11 @@ function resetGame() {
   renderHearts();
   hideBossCard();
   boss = null; $('bossBar').hidden = true; bossIndex = 0; bossRound = 1; nextBossAt = 6; bossWait = 0; kos = 0; playT = 0; maxCombo = 0; ultUses = 0; hitsTaken = 0;
+  if (MODE.id === 'story') { // 闖關：這關的地圖和 Boss
+    const c = CHAPTERS[chapter]; buildMap(c.map); bossIndex = BOSSES.findIndex(b => b.key === c.boss); nextBossAt = 8 + chapter;
+    setTimeout(() => showBanner(`第 ${chapter + 1} 關・${MAPS[c.map].name}`, `撞飛 ${nextBossAt} 個老師，Boss 就會出現！`), 300);
+  } else buildMap(MODE.id === 'endless' || MODE.id === 'bossrush' ? CHAPTERS[0].map : 'school');
+  $('clear').hidden = true;
   waves.length = slams.length = shots.length = herds.length = items.length = laughRings.length = fx.length = talks.length = 0;
   ally = null; statueAwake = false; allyIntro = 0; allySaved = false;
   olds.length = 0; for (let i = 0; i < Math.min(10, gruntTarget()); i++) { const o = spawnOld(i < 4); o.alpha = 1; olds.push(o); }
@@ -2874,20 +3165,43 @@ function resetGame() {
   $('over').hidden = true; closeMvp(); running = true;
 }
 $('again').addEventListener('click', resetGame);
+// 換地圖（無盡模式、Boss 連戰打倒一隻 Boss 後）：老師、道具重新放，主角回到廣場
+function changeMap(id) {
+  if (id === MAP) return;
+  buildMap(id); hero.x = CX; hero.y = PLAZA_Y1 + 60; hero.vx = hero.vy = 0; hero.inv = Math.max(hero.inv, 1.5);
+  gems.length = items.length = shots.length = herds.length = 0;
+  for (const o of olds) if (!['fly', 'down'].includes(o.state)) { const [x, y] = freeSpot(380, 1e9); o.x = x; o.y = y; o.alpha = 0; }
+  if (ally) { ally.x = hero.x + 60; ally.y = hero.y; }
+  showBanner(`前往：${MAPS[id].name}`, '下一隻 Boss 在這裡等你', true);
+}
+// 闖關模式：過關畫面
+function showStageClear() {
+  resetStick(); running = false; hero.vx = hero.vy = 0;
+  const c = CHAPTERS[chapter], d = BOSSES.find(b => b.key === c.boss), nx = CHAPTERS[chapter + 1];
+  $('clearEyebrow').textContent = `第 ${chapter + 1} 關・${MAPS[c.map].name}`;
+  $('clearTitle').textContent = '過關！';
+  $('clearMsg').textContent = `打倒了「${d.name}」！下一關：${MAPS[nx.map].name}`;
+  $('clearCoins').textContent = `金幣 +${payCoins(true)}（共 ${coins}）`;
+  $('clearScore').textContent = score; $('clearTime').textContent = `${Math.floor(playT / 60)}:${String(Math.floor(playT % 60)).padStart(2, '0')}`;
+  setTimeout(() => { $('clear').hidden = false; $('clearNext').focus({ preventScroll: true }); tone(660, 1320, .3, 'triangle', .15); setTimeout(() => tone(880, 1760, .4, 'triangle', .15), 180); }, 1000);
+}
+$('clearNext').addEventListener('click', () => { chapter = Math.min(CHAPTERS.length - 1, chapter + 1); $('clear').hidden = true; resetGame(); });
+$('clearMenu').addEventListener('click', () => { $('clear').hidden = true; backToMenu(); });
 // 打完校長：MVP 結算畫面，主角在舞台上招牌大笑
 let mvpOn = false;
 function showEnding() {
   resetStick();
   running = false; hero.vx = hero.vy = 0;
   $('endCoins').textContent = '+' + payCoins(true);
-  $('mvpSub').textContent = MODE.id === 'survival' ? '撐過 10 分鐘，你就是老頭國中的 MVP！' : '打倒校長青山，你就是老頭國中的 MVP！';
+  $('mvpSub').textContent = MODE.id === 'survival' ? '撐過 10 分鐘，你就是老頭國中的 MVP！' : MODE.id === 'story' ? '7 關全破！你就是老頭國中的 MVP！' : '打倒校長青山，你就是老頭國中的 MVP！';
   $('endScore').textContent = score; $('endKO').textContent = kos; $('endCombo').textContent = maxCombo;
   $('endLv').textContent = level; $('endUlt').textContent = ultUses; $('endHits').textContent = hitsTaken;
   $('endTime').textContent = `${Math.floor(playT / 60)}:${String(Math.floor(playT % 60)).padStart(2, '0')}`;
   const [g, t, sub] = hitsTaken <= 2 ? ['S', '完美畢業', '幾乎沒被打到'] : hitsTaken <= 6 ? ['A', '風光畢業', '只被打了幾下'] : hitsTaken <= 12 ? ['B', '順利畢業', '有點狼狽，但撐過去了'] : ['C', '低空飛過', '被打到快退學了'];
   $('endGrade').textContent = g; $('endGradeText').innerHTML = `${t}<small>${sub}</small>`;
   setTimeout(() => {
-    $('ending').hidden = false; mvpOn = true; $('endNext').focus({ preventScroll: true });
+    $('endNext').hidden = MODE.id === 'story'; // 闖關模式打完最終關就結束
+    $('ending').hidden = false; mvpOn = true; ($('endNext').hidden ? $('endRestart') : $('endNext')).focus({ preventScroll: true });
     startMvpLaugh(); makeConfetti();
   }, 1100);
 }
@@ -2984,7 +3298,7 @@ const STAGES = [
   { id: 'night', name: '晚自習', desc: '一片漆黑，只看得到身邊', extra: 4, speed: 1.12, swatch: 'radial-gradient(circle at 50% 60%,#86bd4f 0 18%,#0b1030 60%)' },
 ];
 const MODES = [
-  { id: 'story', ico: '▶', name: '故事模式', desc: '打倒 7 隻 Boss，拿下 MVP' },
+  { id: 'story', ico: '▶', name: '闖關模式', desc: '7 張地圖一關一關打，每關一隻 Boss' },
   { id: 'endless', ico: '∞', name: '無盡模式', desc: 'Boss 輪流來，撐到被退學' },
   { id: 'bossrush', ico: '★', name: 'Boss 連戰', desc: '小兵很少，Boss 一隻接一隻' },
   { id: 'timed', ico: '60s', name: '限時 60 秒', desc: '60 秒內拿越多分越好' },
@@ -3070,13 +3384,13 @@ function applySelection() {
 let dex = { seen: {}, kills: {} };
 try { const d = JSON.parse(localStorage.getItem('tbxlt-dex') || '{}'); Object.assign(dex.seen, d.seen); Object.assign(dex.kills, d.kills); } catch (_) {}
 function dexMark(kind, key) { dex[kind][key] = (dex[kind][key] || 0) + 1; try { localStorage.setItem('tbxlt-dex', JSON.stringify(dex)); } catch (_) {} }
-const PAGE_TITLES = { setup: '角色／模式', shop: '商店・永久升級', dex: '圖鑑', help: '操作說明' };
+const PAGE_TITLES = { setup: '角色／模式', shop: '商店・永久升級', dex: '圖鑑', help: '操作說明', chap: '闖關模式・選關卡' };
 const charImg = ch => ch.sprite ? sprites[ch.sprite] : ch.hue == null ? heroImg : heroFor(ch);
 function updateTitle() {
   const ch = CHARS.find(c => c.id === sel.char) || CHARS[0], st = STAGES.find(c => c.id === sel.stage) || STAGES[0], md = MODES.find(c => c.id === sel.mode) || MODES[0];
   let b = 0; try { b = +localStorage.getItem('tbxlt-best' + (md.id === 'story' ? '' : '-' + md.id)) || 0; } catch (_) {}
   $('tsBest').textContent = b; $('tsCoins').textContent = coins;
-  $('tsSel').textContent = `${ch.name}・${st.name}・${md.name}`;
+  $('tsSel').textContent = md.id === 'story' ? `${ch.name}・${st.name}・闖關 ${cleared} / ${CHAPTERS.length} 關` : `${ch.name}・${st.name}・${md.name}`;
 }
 function showTitle() {
   $('menuPage').hidden = true; $('title').hidden = false; updateTitle();
@@ -3086,11 +3400,24 @@ function openPage(pg) {
   $('title').hidden = true; const m = $('menuPage'); m.dataset.page = pg; m.hidden = false; $('pageTitle').textContent = PAGE_TITLES[pg];
   if (pg === 'shop') renderShop();
   if (pg === 'dex') renderDex(dexTab);
+  if (pg === 'chap') renderChapters();
   $('start').scrollTop = 0; $('pageBack').focus({ preventScroll: true });
 }
 document.querySelectorAll('.ts-row [data-go]').forEach(bt => bt.addEventListener('click', () => openPage(bt.dataset.go)));
 $('pageBack').addEventListener('click', showTitle);
 $('tsPlay').addEventListener('click', () => $('go').click());
+const CHAP_COL = { hall: '#8a9a7a', office: '#b5824e', forest: '#3f8a4e', lab: '#1b7f9c', stage: '#b0302c', cave: '#7a5a3a', school: '#e2412f' };
+function renderChapters() {
+  const box = $('chapList'); box.innerHTML = '';
+  $('chapTag').textContent = `已過 ${cleared} / ${CHAPTERS.length} 關。過關才會解鎖下一關，每關結束都會拿到金幣`;
+  CHAPTERS.forEach((c, i) => {
+    const d = BOSSES.find(b => b.key === c.boss), locked = i > cleared, done = i < cleared;
+    const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'chap' + (i === cleared ? ' next' : ''); bt.disabled = locked;
+    bt.innerHTML = `<span class="sw" style="background:${locked ? '#9a8f7a' : CHAP_COL[c.map]}">${locked ? '🔒' : i + 1}</span><span><b>第 ${i + 1} 關・${MAPS[c.map].name}</b><small>Boss：${dex.seen[c.boss] ? (d.title ? d.title + '・' : '') + d.name : '？？？'}${i === CHAPTERS.length - 1 ? '（最終關）' : ''}</small></span><span class="st">${done ? '✅' : locked ? '' : '▶'}</span>`;
+    bt.addEventListener('click', () => { if (locked) return; chapter = i; startGame(); });
+    box.appendChild(bt);
+  });
+}
 addEventListener('keydown', e => {
   if ($('start').hidden) return;
   if (e.key === 'Escape' && !$('menuPage').hidden) { e.preventDefault(); showTitle(); return; }
@@ -3214,7 +3541,8 @@ function backToMenu() {
 }
 $('toMenu').addEventListener('click', backToMenu);
 $('endMenu').addEventListener('click', backToMenu);
-$('go').addEventListener('click', () => {
+$('go').addEventListener('click', () => { if (sel.mode === 'story') openPage('chap'); else startGame(); });
+function startGame() {
   try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume && AC.resume(); } catch (_) {}
   applySelection(); resetGame();
   $('start').hidden = true; $('hud').hidden = false;
@@ -3222,7 +3550,7 @@ $('go').addEventListener('click', () => {
   ultBtn.hidden = false; updateUltBtn(); loadLaugh(); loadClips(); renderHearts();
   $('pauseBtn').hidden = false; $('pauseTip').hidden = isTouch;
   running = true;
-});
+}
 // ---------- PWA：離線功能與安裝提示 ----------
 if ('serviceWorker' in navigator && /github\.io$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});
 (() => {
