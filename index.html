@@ -342,6 +342,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
     <button id="resumeBtn" class="end-btn" type="button">繼續玩</button>
     <button id="restartBtn" class="end-btn ghost" type="button">重新開始</button>
     <button id="quitBtn" class="end-btn ghost" type="button">退出回主選單</button>
+    <button id="musicBtn" class="end-btn ghost" type="button">Boss 音樂：開</button>
     <p class="lede" id="pauseTip">電腦按 Esc 或 P 也可以暫停／繼續</p>
   </div>
 </div>
@@ -645,6 +646,90 @@ const sfx = {
   scratch: () => { tone(300, 1100, .12, 'sawtooth', .07); setTimeout(() => tone(1100, 250, .14, 'sawtooth', .07), 130); setTimeout(() => tone(300, 900, .1, 'sawtooth', .07), 290); },
   beat: i => { tone(160, 40, .22, 'sine', .5); tone(5000, 3000, .04, 'square', .03); if (i % 2) tone(420, 380, .12, 'square', .05); },
 };
+
+// ---------- Boss 音樂：全部是程式即時合成的原創旋律（不是影片裡的歌）----------
+// 每首歌用 16 分音符一格；chords 每小節一個和弦，mel 是 [第幾格, 音高(MIDI), 長度幾格]
+const midi = n => 440 * Math.pow(2, (n - 69) / 12);
+const SONGS = {
+  // 夢的翅膀：慢板悲情抒情歌（A 小調），主旋律是會抖的高音
+  wings: { bpm: 74, bars: 4, chords: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], style: 'ballad',
+    mel: [[0, 76, 8], [8, 74, 4], [12, 72, 4], [16, 72, 8], [24, 69, 4], [28, 72, 4], [32, 67, 8], [40, 76, 4], [44, 74, 4], [48, 74, 12], [60, 71, 4]] },
+  // 如果我是Dj：128 BPM 舞曲，四拍大鼓＋反拍貝斯＋閃亮琶音
+  dj: { bpm: 128, bars: 4, chords: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], style: 'edm',
+    mel: [[0, 81, 2], [3, 79, 2], [6, 76, 2], [10, 79, 2], [12, 76, 4], [16, 77, 2], [19, 76, 2], [22, 72, 2], [26, 74, 2], [28, 72, 4], [32, 79, 2], [35, 76, 2], [38, 72, 2], [42, 76, 2], [44, 79, 4], [48, 79, 2], [51, 78, 2], [54, 74, 2], [58, 71, 2], [60, 74, 4]] },
+  // 其他老師：緊張的 Boss 戰（D 小調）
+  boss: { bpm: 140, bars: 2, chords: [[50, 53, 57], [46, 50, 53]], style: 'battle',
+    mel: [[0, 74, 2], [2, 74, 2], [4, 77, 2], [6, 74, 2], [8, 79, 3], [11, 77, 3], [14, 76, 2], [16, 74, 2], [18, 74, 2], [20, 70, 2], [22, 72, 2], [24, 74, 6], [30, 69, 2]] },
+  // 校長：更快、更有壓迫感
+  speech: { bpm: 152, bars: 2, chords: [[52, 55, 59], [48, 52, 55]], style: 'battle',
+    mel: [[0, 76, 2], [2, 76, 2], [4, 79, 2], [6, 76, 2], [8, 83, 3], [11, 81, 3], [14, 79, 2], [16, 76, 2], [18, 74, 2], [20, 72, 2], [22, 74, 2], [24, 76, 6], [30, 71, 2]] },
+};
+let musicOn = true; try { musicOn = localStorage.getItem('tbxlt-music') !== '0'; } catch (_) {}
+const mus = { key: null, gain: null, next: 0, step: 0, start: 0, spb: .5, song: null, sing: [] };
+let noiseBuf = null;
+function musNote(t, f, dur, type, vol, vib = 0) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  if (vib) { const l = AC.createOscillator(), lg = AC.createGain(); l.frequency.value = 5.5; lg.gain.value = f * vib; l.connect(lg).connect(o.frequency); l.start(t); l.stop(t + dur + .05); }
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(.03, dur / 4)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(mus.gain); o.start(t); o.stop(t + dur + .02);
+}
+function musNoise(t, dur, vol, hp) {
+  if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate * .3, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const n = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  n.buffer = noiseBuf; f.type = 'highpass'; f.frequency.value = hp;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  n.connect(f).connect(g).connect(mus.gain); n.start(t); n.stop(t + dur);
+}
+function musKick(t, vol = .9) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + .14);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + .28);
+  o.connect(g).connect(mus.gain); o.start(t); o.stop(t + .3);
+}
+function musStep(sg, i, t) {
+  const st = mus.spb / 4, bar = Math.floor(i / 16) % sg.bars, k = i % 16, ch = sg.chords[bar];
+  for (const [s0, n, len] of sg.mel) if (s0 === i % (sg.bars * 16)) {
+    if (sg.style === 'ballad') { musNote(t, midi(n), len * st * .95, 'sine', .22, .012); musNote(t, midi(n + 12), len * st * .9, 'triangle', .03, .012); mus.sing.push([t, t + len * st * .9]); }
+    else if (sg.style === 'edm') musNote(t, midi(n), len * st * .9, 'square', .06);
+    else musNote(t, midi(n), len * st * .85, 'sawtooth', .07);
+  }
+  if (sg.style === 'ballad') {
+    if (k === 0) for (const n of ch) musNote(t, midi(n), 16 * st, 'triangle', .06);
+    if (k % 2 === 0) musNote(t, midi(ch[(k / 2) % 3] + 12), st * 3, 'sine', .05);
+    if (k === 0) musNote(t, midi(ch[0] - 12), 16 * st, 'sine', .12);
+  } else if (sg.style === 'edm') {
+    if (k % 4 === 0) musKick(t);
+    if (k === 4 || k === 12) musNoise(t, .14, .25, 1200);
+    if (k % 4 === 2) { musNoise(t, .05, .14, 7000); musNote(t, midi(ch[0] - 12), st * 1.8, 'sawtooth', .12); }
+    if (k % 2 === 1) musNote(t, midi(ch[(k >> 1) % 3] + 12), st * .8, 'triangle', .05);
+  } else {
+    if (k === 0 || k === 8 || k === 10) musKick(t, .7);
+    if (k === 4 || k === 12) musNoise(t, .12, .2, 1500);
+    if (k % 2 === 0) musNote(t, midi(ch[0] - 12 + (k % 8 === 6 ? 7 : 0)), st * 1.6, 'square', .07);
+    if (k % 2 === 1) musNoise(t, .03, .06, 8000);
+  }
+}
+function musicTick() {
+  if (!AC) return;
+  const want = musicOn && running && boss && !['down', 'gone'].includes(boss.state) ? (SONGS[boss.def.key] ? boss.def.key : 'boss') : null;
+  if (want !== mus.key) {
+    if (mus.gain) { const g = mus.gain; g.gain.setTargetAtTime(0.0001, AC.currentTime, .15); setTimeout(() => g.disconnect(), 900); mus.gain = null; }
+    mus.key = want; mus.sing.length = 0;
+    if (want) {
+      mus.song = SONGS[want]; mus.spb = 60 / mus.song.bpm; mus.gain = AC.createGain(); mus.gain.gain.value = .35; mus.gain.connect(AC.destination);
+      mus.start = mus.next = AC.currentTime + .08; mus.step = 0;
+    }
+  }
+  if (!mus.key) return;
+  if (mus.next < AC.currentTime - .5) { mus.next = AC.currentTime + .05; } // 卡頓太久就重新對拍
+  while (mus.next < AC.currentTime + .15) { musStep(mus.song, mus.step, mus.next); mus.step++; mus.next += mus.spb / 4; }
+  while (mus.sing.length && mus.sing[0][1] < AC.currentTime) mus.sing.shift();
+}
+// 現在第幾拍（小數）；沒放音樂時回傳 -1
+const musBeat = key => mus.key === key && AC ? (AC.currentTime - mus.start) / mus.spb : -1;
+// 夢的翅膀這一刻有沒有在唱（主旋律有音在響）
+const musSinging = () => mus.key === 'wings' && AC && mus.sing.some(([a, b]) => AC.currentTime >= a && AC.currentTime <= b);
 
 // ---------- 主角 ----------
 let MAXSPD = 330, POWER = 1;
@@ -1252,7 +1337,7 @@ const BOSSES = [
   { key: 'wings', name: '夢的翅膀', hp: 12, speed: 74, range: 620, score: 12,
     tip: '音符一圈圈飛出來，往空隙鑽！俯衝落地後他會喘一下', intro: '「夢的翅膀」從後山樹林飛來了', catch: '夢的翅膀，\n已經受了傷……', colors: ['#3f8a4e', '#1f5a30'],
     opening: ['我的愛……在寂寞世界裏……', '夢的翅膀，已經受了傷……', '每次想你，我都會心痛！'],
-    walk: ['我的愛在寂寞世界裏～', '心好痛……', '啊～啊～啊～', '想你想到鼻子都長了'],
+    walk: ['♪ 我的愛在寂寞世界裏～', '♪ 夢的翅膀～已經受了傷～', '♪ 每次想你～我都會心痛～', '♪ 啊～啊～啊～', '♪ 心好痛～'],
     wind: ['夢的翅膀～～', '啊～～～（飆高音）', '每次想你……'],
     attack: ['每次想你我都會心痛！', '夢的翅膀！！'],
     dive: ['心痛俯衝！！', '我的愛～～！'],
@@ -1269,7 +1354,7 @@ const BOSSES = [
   { key: 'dj', name: '如果我是Dj', hp: 13, speed: 80, range: 520, score: 12,
     tip: '跟著節拍閃震波！放完歌牠們會喘口氣', intro: '兩隻戴毛帽的貓跳上台了', catch: '如果我是Dj，\n你會愛我嗎？', colors: ['#7a2fb8', '#d6287f'],
     opening: ['如果我是Dj……', '你會愛我嗎？', '動次動次！全場嗨起來！'],
-    walk: ['動次動次', '如果我是Dj～', '你會愛我嗎？', '喵次喵次', '左邊的朋友舉起手！'],
+    walk: ['♪ 動次動次', '♪ 如果我是Dj～', '♪ 你會愛我嗎？', '♪ 喵次喵次', '左邊的朋友舉起手！', '右邊的朋友跳起來！'],
     wind: ['如果我是Dj……', 'Drop the beat！', '3、2、1——'],
     attack: ['動次！動次！', '嗨起來！！', '喵次！喵次！'],
     minion: ['動次動次！', '嗨起來！'],
@@ -1485,11 +1570,13 @@ function attackTick(b, dt) {
   }
   if (d.key === 'dj') {
     b.vx = b.vy = 0; b.bt -= dt;
-    if (b.bt <= 0) {
+    const mb = musBeat('dj'), onBeat = mb >= 0 ? Math.floor(mb) !== b.lastBeat : b.bt <= 0; // 有音樂就踩著音樂的拍子
+    if (mb >= 0) b.lastBeat = Math.floor(mb);
+    if (onBeat) {
       if (b.beat >= b.beats) { b.state = 'walk'; b.t = rand(2.4, 3.4); return false; }
       const side = b.beat % 2 ? 1 : -1;
       waves.push({ x: b.x + side * 40, y: b.y, r: 30, max: 270, hit: false, col: side > 0 ? '#ff4fa8' : '#3dd6ff' });
-      sfx.beat(b.beat); shake = 6; b.beat++; b.bt = 0.52 / Math.sqrt(b.rage);
+      if (mb < 0) sfx.beat(b.beat); shake = 6; b.beat++; b.bt = 0.52 / Math.sqrt(b.rage);
     }
     return false;
   }
@@ -1544,7 +1631,7 @@ function updateBoss(dt) {
     case 'walk':
       speed = d.speed * b.rage; b.vx = dx / dh * speed; b.vy = dy / dh * speed; b.t -= dt * b.rage;
       b.pose = Math.max(0, b.pose - dt * 3);
-      b.sayCd -= dt; if (!b.say && b.sayCd <= 0) { say(b, d.walk, 1.8); b.sayCd = rand(4, 7); }
+      b.sayCd -= dt; if (!b.say && b.sayCd <= 0) { say(b, d.walk, 1.8); b.sayCd = d.key === 'wings' || d.key === 'dj' ? rand(1.2, 2.4) : rand(4, 7); }
       if (b.t <= 0) { if (dh < d.range) startWindup(b); else b.t = 0.8; }
       break;
     case 'windup':
@@ -2178,8 +2265,9 @@ function drawWings(b, time, w, bob, knocked, dizzy) {
   const lift = knocked ? 0 : 14 + Math.sin(time * 3) * 6;
   ctx.translate(0, -lift);
   drawWing(-1, flap, false); drawWing(1, sad ? -.9 : flap * .6, true);
-  const singing = b.state === 'windup' || (b.state === 'attack' && b.mode !== 'dive') || (b.state === 'intro' && b.say);
-  const k = sad ? 'mk2' : singing && Math.floor(time * 6) % 2 ? 'mk1' : b.state === 'attack' ? 'mk1' : 'mk0';
+  const singing = !knocked; // 一直在唱歌：有放音樂時嘴巴跟著旋律開合，沒音樂就自己一開一合
+  const open = mus.key === 'wings' ? musSinging() && Math.floor(time * 7) % 3 : Math.floor(time * 5) % 2;
+  const k = sad && !open ? 'mk2' : open || b.state === 'attack' ? 'mk1' : sad ? 'mk2' : 'mk0';
   const img = bossImgs[k], H = 150;
   if (bossImgReady(k)) { const W = img.naturalWidth * H / img.naturalHeight; ctx.drawImage(img, -W / 2, -H, W, H); }
   else { ctx.fillStyle = '#c8814f'; ell(0, -75, 70, 75); ctx.fill(); }
@@ -2192,9 +2280,11 @@ function drawWings(b, time, w, bob, knocked, dizzy) {
   if (b.state === 'windup') exclaim(-160);
 }
 // 如果我是Dj：兩隻戴毛帽的小貓在 DJ 台後面跳舞（臉是影片裡的照片）
-function drawKitten(x, ph, fur, belly, hat, hatD, face, time, rate, knocked) {
-  const up = knocked ? 0 : Math.abs(Math.sin(time * rate + ph)) * 14, arm = knocked ? 0 : Math.sin(time * rate + ph);
-  ctx.save(); ctx.translate(x, -up);
+function drawKitten(x, ph, fur, belly, hat, hatD, face, time, rate, knocked, beat = -1) {
+  // 一直在跳舞：有放音樂時每一拍跳一下，沒音樂就照自己的節奏
+  const a = beat >= 0 ? beat * Math.PI + ph : time * rate + ph;
+  const up = knocked ? 0 : Math.abs(Math.sin(a)) * 16, arm = knocked ? 0 : Math.sin(a);
+  ctx.save(); ctx.translate(x, -up); if (!knocked) ctx.rotate(Math.sin(a * .5) * .14);
   ctx.fillStyle = fur; ctx.strokeStyle = INK; ctx.lineWidth = 2.2;
   ell(-10, -6, 8, 7); ctx.fill(); ctx.stroke(); ell(10, -6, 8, 7); ctx.fill(); ctx.stroke();
   ell(0, -38, 22, 30); ctx.fill(); ctx.stroke();
@@ -2209,7 +2299,7 @@ function drawKitten(x, ph, fur, belly, hat, hatD, face, time, rate, knocked) {
   if (bossImgReady(face)) { ctx.save(); ell(0, -86, 32, 26); ctx.clip(); const W = 70, H = W * img.naturalHeight / img.naturalWidth; ctx.drawImage(img, -W / 2, -86 - H / 2 + 2, W, H); ctx.restore(); }
   if (knocked) { ctx.strokeStyle = INK; ctx.lineWidth = 3; for (const ex of [-11, 11]) { ctx.beginPath(); ctx.moveTo(ex - 5, -94); ctx.lineTo(ex + 5, -85); ctx.moveTo(ex + 5, -94); ctx.lineTo(ex - 5, -85); ctx.stroke(); } }
   // 毛帽：圓頂＋往旁邊垂下來的帽尖＋羅紋帽緣
-  const flop = Math.sin(time * rate + ph + 1) * 6;
+  const flop = Math.sin(a + 1) * 6;
   ctx.fillStyle = hat; ctx.strokeStyle = INK; ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(-31, -104); ctx.quadraticCurveTo(-30, -138, 2, -142); ctx.quadraticCurveTo(26, -150, 34 + flop, -132);
   ctx.quadraticCurveTo(40 + flop, -120, 28, -122); ctx.quadraticCurveTo(32, -112, 31, -104); ctx.closePath(); ctx.fill(); ctx.stroke();
@@ -2219,8 +2309,9 @@ function drawKitten(x, ph, fur, belly, hat, hatD, face, time, rate, knocked) {
 }
 function drawDj(b, time, w, bob, knocked) {
   const playing = b.state === 'attack' || b.state === 'windup', rate = playing ? 11 : 6;
-  drawKitten(-40, 0, '#6f6660', '#a59d96', '#9a9aa0', '#7d7d84', 'catG', time, rate, knocked);
-  drawKitten(40, Math.PI / 2, '#d9a066', '#f4dcb8', '#f6f4ef', '#dedbd3', 'catO', time, rate, knocked);
+  const beat = musBeat('dj');
+  drawKitten(-40, 0, '#6f6660', '#a59d96', '#9a9aa0', '#7d7d84', 'catG', time, rate, knocked, beat);
+  drawKitten(40, Math.PI / 2, '#d9a066', '#f4dcb8', '#f6f4ef', '#dedbd3', 'catO', time, rate, knocked, beat);
   // DJ 台：兩片會轉的唱盤＋霓虹燈條
   ctx.fillStyle = '#26222e'; ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.roundRect(-64, -34, 128, 30, 7); ctx.fill(); ctx.stroke();
   ctx.fillStyle = `hsl(${(time * 220) % 360},90%,60%)`; ctx.fillRect(-60, -10, 120, 4);
@@ -2442,6 +2533,7 @@ function loadBest() { try { best = +localStorage.getItem(bestKey()) || 0; } catc
 function frame(now) {
   const realDt = Math.min(.25, (now - last) / 1000); // 倒數計時用真實時間，畫面卡頓也不會變慢
   let dt = Math.min(.033, realDt); last = now; time += dt;
+  musicTick();
   if (running) {
     if (hitStop > 0) { hitStop -= dt; }
     else {
@@ -2784,6 +2876,9 @@ $('pauseBtn').addEventListener('pointerdown', e => e.stopPropagation());
 $('resumeBtn').addEventListener('click', resumeGame);
 $('restartBtn').addEventListener('click', () => { paused = false; $('pause').hidden = true; payCoins(false); resetGame(); });
 $('quitBtn').addEventListener('click', () => { paused = false; $('pause').hidden = true; payCoins(false); backToMenu(); });
+const renderMusicBtn = () => { $('musicBtn').textContent = 'Boss 音樂：' + (musicOn ? '開' : '關'); };
+renderMusicBtn();
+$('musicBtn').addEventListener('click', () => { musicOn = !musicOn; try { localStorage.setItem('tbxlt-music', musicOn ? '1' : '0'); } catch (_) {} renderMusicBtn(); });
 // 手機切到別的 App、接電話時自動暫停
 document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
 function backToMenu() {
