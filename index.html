@@ -143,7 +143,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 .menu h2{margin:0;font-family:var(--font-display);font-weight:900;font-size:17px;display:flex;gap:8px;align-items:center}
 .menu h2 i{font-style:normal;background:var(--ink);color:var(--paper);border-radius:999px;width:24px;height:24px;display:grid;place-content:center;font-size:13px}
 .opts{display:grid;gap:8px;grid-template-columns:repeat(3,minmax(0,1fr))}
-.opts.modes{grid-template-columns:repeat(4,minmax(0,1fr))}
+.opts.modes{grid-template-columns:repeat(5,minmax(0,1fr))}
 @media (max-width:560px){.opts.modes{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .opt{font:inherit;color:inherit;text-align:left;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px;display:grid;gap:4px;align-content:start;
   cursor:pointer;box-shadow:0 4px 0 var(--ink);min-width:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -183,6 +183,19 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 .lv-ico{width:52px;height:52px;border-radius:50%;display:grid;place-content:center;font-family:var(--font-display);font-weight:900;font-size:24px;color:#fff;
   border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink)}
 .lv-opt b{font-size:18px;font-weight:900}
+.lv-opt.evo{background:linear-gradient(160deg,#fff4c4,#ffd54a);border-color:#8a5a00;box-shadow:0 6px 0 #8a5a00,0 0 0 4px rgba(255,213,74,.5)}
+.lv-opt.evo em{color:#8a2a00;font-size:14px}
+/* 永久升級（主選單） */
+.shop-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.coins{font-family:var(--font-display);font-weight:900;font-size:18px;background:#fff4cf;border:3px solid var(--ink);border-radius:999px;padding:2px 12px;white-space:nowrap}
+.coins b{color:#c98a00}
+.opts.shop{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:560px){.opts.shop{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.shop .opt{justify-items:start}
+.shop .opt[disabled]{opacity:.55;cursor:default}
+.lvdots{display:flex;gap:3px}.lvdots i{width:9px;height:9px;border-radius:50%;border:2px solid var(--ink);background:#fff}.lvdots i.on{background:#ffd54a}
+.cost{font-size:12px;font-weight:900;color:#c98a00}
+.earn{font-weight:900;color:#c98a00}
 .lv-opt em{font-style:normal;font-size:12px;font-weight:900;color:var(--pow)}
 .lv-opt small{font-size:13px;line-height:1.45;color:#5a4a30}
 .lv-key{font-size:11px;color:#8a7a5a}
@@ -246,7 +259,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
   <div class="chip" id="hearts" aria-label="血量"></div>
   <div class="chip"><b id="score">0</b><span>分</span></div>
   <div class="chip best"><span>最高</span><b id="best">0</b></div>
-  <div class="chip" id="timerChip" hidden><span>剩</span><b id="timeLeft">60</b><span>秒</span></div>
+  <div class="chip" id="timerChip" hidden><span>剩</span><b id="timeLeft">60</b><span id="timeUnit">秒</span></div>
   <div class="chip" id="xpChip"><b id="lvNow">Lv 1</b><div class="xpbar"><i id="xpFill"></i></div><span class="sk" id="skList"></span></div>
 </div>
 <div id="bossBar" hidden>
@@ -272,7 +285,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
     <div class="mvp-head">
       <div class="mvp-victory">VICTORY・全校安靜了</div>
       <div class="mvp-title">MVP</div>
-      <div class="mvp-sub">打倒校長青山，你就是老頭國中的 MVP！</div>
+      <div class="mvp-sub" id="mvpSub">打倒校長青山，你就是老頭國中的 MVP！</div>
     </div>
     <div class="mvp-stage">
       <canvas id="mvpArt" width="600" height="700" aria-label="主角在大笑"></canvas>
@@ -282,6 +295,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
       <div class="mvp-grade"><b id="endGrade">S</b><span id="endGradeText">完美畢業<small>幾乎沒被打到</small></span></div>
       <div class="mvp-stats">
         <div class="wide"><span>總分</span><b id="endScore">0</b></div>
+        <div class="wide"><span>獲得金幣</span><b id="endCoins">0</b></div>
         <div><span>撞飛人數</span><b id="endKO">0</b></div>
         <div><span>最高連撞</span><b id="endCombo">0</b></div>
         <div><span>等級</span><b id="endLv">1</b></div>
@@ -301,6 +315,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
   <div class="card">
     <h2 id="overTitle">被退學了！</h2>
     <p class="lede" id="overMsg">你被老師們圍毆了。</p>
+    <p class="lede earn" id="overCoins"></p>
     <div class="stats"><div><span>這局分數</span><b id="overScore">0</b></div><div><span>最高紀錄</span><b id="overBest">0</b></div></div>
     <div class="end-row">
       <button id="again" type="button">再玩一次</button>
@@ -323,6 +338,7 @@ kbd{font-family:var(--font-body);background:#fff;border:2px solid var(--ink);bor
     <section><h2><i>1</i>選角色</h2><div class="opts" id="optChar"></div></section>
     <section><h2><i>2</i>選關卡</h2><div class="opts" id="optStage"></div></section>
     <section><h2><i>3</i>遊戲模式</h2><div class="opts modes" id="optMode"></div></section>
+    <section><div class="shop-head"><h2><i>4</i>永久升級</h2><span class="coins">金幣 <b id="coinNow">0</b></span></div><div class="opts shop" id="optShop"></div></section>
     <details class="howto"><summary>操作說明</summary>
       <div class="keys" id="keysPC">
         <div><span>走路</span><span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span></div>
@@ -781,30 +797,56 @@ let level = 1, xp = 0, xpNeed = 60, pendingLv = 0, lvOpen = false, bookCd = 1;
 let skills = {};
 const gems = [], books = [];
 const skl = id => skills[id] || 0;
-const bumpR = () => 54 * POWER * (1 + .2 * skl('belly'));
-function recomputeStats() { MAXSPD = CHAR.speed * (1 + .08 * skl('speed')); MAX_HP = CHAR.hp + skl('heart'); }
+// 局外養成：每局結束拿金幣，在主選單買永久能力
+const META_UP = [
+  { id: 'hp', name: '多一顆心', max: 3, cost: l => 80 + l * 80, desc: '最多愛心 +1' },
+  { id: 'range', name: '肚子更大', max: 5, cost: l => 50 + l * 50, desc: '撞擊範圍 +8%' },
+  { id: 'speed', name: '跑更快', max: 5, cost: l => 50 + l * 50, desc: '移動速度 +5%' },
+  { id: 'xp', name: '讀書加成', max: 5, cost: l => 60 + l * 60, desc: '經驗值 +10%' },
+  { id: 'ult', name: '開局集氣', max: 3, cost: l => 70 + l * 70, desc: '開局大招就有 +20%' },
+];
+let coins = 0, meta = {};
+try { coins = +localStorage.getItem('tbxlt-coins') || 0; meta = JSON.parse(localStorage.getItem('tbxlt-meta') || '{}'); } catch (_) {}
+const mt = id => meta[id] || 0;
+function saveMeta() { try { localStorage.setItem('tbxlt-coins', coins); localStorage.setItem('tbxlt-meta', JSON.stringify(meta)); } catch (_) {} }
+// 一局結束時結算金幣：分數的一半 + 每隻 Boss 15 + 獲勝 50
+function payCoins(win) { const n = Math.floor(score / 2) + bossKills * 15 + (win ? 50 : 0); coins += n; saveMeta(); return n; }
+const bumpR = () => 54 * POWER * (1 + .2 * skl('belly')) * (1 + .08 * mt('range'));
+function recomputeStats() { MAXSPD = CHAR.speed * (1 + .08 * skl('speed')) * (1 + .05 * mt('speed')); MAX_HP = CHAR.hp + skl('heart') + mt('hp'); }
 function dropGems(x, y, n, v) { for (let i = 0; i < n; i++) gems.push({ x: x + rand(-14, 14), y: y + rand(-8, 8), v, vx: rand(-160, 160), vy: rand(-120, 120), t: 0 }); }
 function renderXp() {
   $('lvNow').textContent = 'Lv ' + level; $('xpFill').style.width = Math.min(100, xp / xpNeed * 100) + '%';
-  $('skList').textContent = SKILLS.filter(k => skl(k.id)).map(k => k.ico + skl(k.id)).join(' ');
+  $('skList').textContent = EVOS.filter(e => evolved[e.id]).map(e => '★' + e.name).concat(SKILLS.filter(k => skl(k.id)).map(k => k.ico + skl(k.id))).join(' ');
 }
 function gainXp(v) {
-  xp += v;
+  xp += v * (1 + .1 * mt('xp'));
   while (xp >= xpNeed) { xp -= xpNeed; level++; xpNeed = Math.round(60 + (level - 1) * 32); pendingLv++; }
   renderXp();
   if (pendingLv && !lvOpen && !hero.dead) openLevelUp();
 }
+// 技能進化：兩個技能都升滿就能合體
+const EVOS = [
+  { id: 'storm', ico: '卷', color: '#c0392b', name: '考卷暴雨', need: ['book', 'belly'], desc: () => '每 2 秒，天上掉下 8 張考卷砸向附近的敵人' },
+  { id: 'quake2', ico: '震', color: '#5b2a9c', name: '地震肚', need: ['quake', 'cd'], desc: () => '不用撞，每 2.5 秒自動震飛身邊 230 範圍的人' },
+  { id: 'ghost', ico: '影', color: '#1b7f9c', name: '殘影衝刺', need: ['speed', 'iron'], desc: () => '跑步會留下殘影，碰到殘影的敵人直接飛' },
+  { id: 'hole', ico: '洞', color: '#3b2716', name: '珍奶黑洞', need: ['magnet', 'heart'], desc: () => '每 8 秒把附近的人捲進來震飛，順便補 1 顆心' },
+];
+let evolved = {};
+const nameOf = id => (SKILLS.find(k => k.id === id) || {}).name;
 function openLevelUp() {
+  const evo = EVOS.find(e => !evolved[e.id] && e.need.every(k => skl(k) >= MAX_SK));
   const pool = SKILLS.filter(k => skl(k.id) < MAX_SK && (!k.need || k.need()));
+  if (evo) pool.unshift(evo);
   if (!pool.length) { pendingLv = 0; healHero(1, hero.x, hero.y - 150); return; }
-  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  for (let i = pool.length - 1; i > (evo ? 1 : 0); i--) { const j = (evo ? 1 : 0) + Math.floor(Math.random() * (i + (evo ? 0 : 1))); [pool[i], pool[j]] = [pool[j], pool[i]]; } // 進化卡固定排第一張
   const choices = pool.slice(0, 3);
   lvOpen = true; running = false; resetStick();
   $('lvNum').textContent = 'Lv ' + (level - pendingLv + 1);
   const box = $('lvOpts'); box.innerHTML = '';
   choices.forEach((k, i) => {
-    const lv = skl(k.id) + 1, bt = document.createElement('button'); bt.type = 'button'; bt.className = 'lv-opt';
-    bt.innerHTML = `<span class="lv-ico" style="background:${k.color}">${k.ico}</span><b>${k.name}</b><em>${lv === 1 ? '新技能' : `Lv ${lv - 1} → ${lv}`}</em><small>${k.desc(lv)}</small>` + (isTouch ? '' : `<span class="lv-key">按 ${i + 1}</span>`);
+    const isEvo = !!k.need && Array.isArray(k.need), lv = isEvo ? 1 : skl(k.id) + 1, bt = document.createElement('button'); bt.type = 'button'; bt.className = 'lv-opt' + (isEvo ? ' evo' : '');
+    const tag = isEvo ? `進化！${nameOf(k.need[0])} ＋ ${nameOf(k.need[1])}` : lv === 1 ? '新技能' : `Lv ${lv - 1} → ${lv}`;
+    bt.innerHTML = `<span class="lv-ico" style="background:${k.color}">${k.ico}</span><b>${k.name}</b><em>${tag}</em><small>${k.desc(lv)}</small>` + (isTouch ? '' : `<span class="lv-key">按 ${i + 1}</span>`);
     bt.addEventListener('click', () => pickSkill(k));
     box.appendChild(bt);
   });
@@ -813,10 +855,12 @@ function openLevelUp() {
 }
 function pickSkill(k) {
   if (!lvOpen) return;
-  skills[k.id] = skl(k.id) + 1; recomputeStats();
+  if (Array.isArray(k.need)) { evolved[k.id] = true; showBanner('技能進化！', k.name, true); }
+  else skills[k.id] = skl(k.id) + 1;
+  recomputeStats();
   if (k.id === 'heart') { hero.hp = Math.min(MAX_HP, hero.hp + 1); renderHearts(); }
   pendingLv--; lvOpen = false; $('lvlup').hidden = true; renderXp();
-  pop(`${k.name} Lv${skl(k.id)}！`, hero.x, hero.y - 150, 1.1);
+  pop(evolved[k.id] ? `${k.name}！` : `${k.name} Lv${skl(k.id)}！`, hero.x, hero.y - 150, 1.1);
   if (pendingLv > 0) openLevelUp(); else { running = true; hero.inv = Math.max(hero.inv, .8); }
 }
 addEventListener('keydown', e => { if (!lvOpen) return; const n = +e.key; const bt = $('lvOpts').children[n - 1]; if (bt) { e.preventDefault(); bt.click(); } });
@@ -958,6 +1002,68 @@ function drawSpriteHero(time) {
   }
   if (stunned || hero.dead) dizzyStars(hero.x, hero.y - (hero.dead ? 40 : h + 4), time, 20);
 }
+// ---------- 進化技能的效果 ----------
+const papers = [], ghosts = [];
+let stormCd = 2, quakeCd = 2.5, holeCd = 8, ghostCd = 0;
+function standingNear(x, y, r) { return olds.filter(o => STANDING.includes(o.state) && Math.hypot(o.x - x, o.y - y) < r); }
+function updateEvos(dt) {
+  if (evolved.storm && (stormCd -= dt) <= 0) {
+    stormCd = 2;
+    const tg = standingNear(hero.x, hero.y, 520).sort(() => Math.random() - .5).slice(0, 8);
+    if (boss && bossHittable(boss) && Math.hypot(boss.x - hero.x, boss.y - hero.y) < 520) tg.push(boss);
+    tg.forEach((o, i) => papers.push({ o, x: o.x + rand(-10, 10), y: o.y, z: 380 + i * 30, vz: 0 }));
+  }
+  for (let i = papers.length - 1; i >= 0; i--) {
+    const p = papers[i]; p.vz -= 2000 * dt; p.z += p.vz * dt;
+    if (p.z <= 40) {
+      const o = p.o;
+      if (o === boss) { if (boss && bossHittable(boss) && boss.inv <= 0) hitBoss(0, 1, true); }
+      else if (STANDING.includes(o.state)) knock(o, rand(-1, 1), 1, true);
+      burst(p.x, p.y - 30); papers.splice(i, 1);
+    }
+  }
+  if (evolved.quake2 && (quakeCd -= dt) <= 0) {
+    quakeCd = 2.5; shake = Math.max(shake, 8);
+    for (const o of standingNear(hero.x, hero.y, 230)) { const d = Math.hypot(o.x - hero.x, o.y - hero.y) || 1; knock(o, (o.x - hero.x) / d, (o.y - hero.y) / d, true); }
+    laughRings.push({ x: hero.x, y: hero.y, r: 30, max: 230, hits: new Set(), quake: true });
+  }
+  if (evolved.ghost) {
+    const sp = Math.hypot(hero.vx, hero.vy);
+    if (sp > MAXSPD * .5 && (ghostCd -= dt) <= 0) { ghostCd = .07; ghosts.push({ x: hero.x, y: hero.y, t: .7, face: hero.face }); }
+    for (let i = ghosts.length - 1; i >= 0; i--) {
+      const gh = ghosts[i]; gh.t -= dt; if (gh.t <= 0) { ghosts.splice(i, 1); continue; }
+      for (const o of standingNear(gh.x, gh.y, 34)) knock(o, o.x > gh.x ? 1 : -1, 0, true);
+    }
+  }
+  if (evolved.hole && (holeCd -= dt) <= 0) {
+    holeCd = 8;
+    const near = standingNear(hero.x, hero.y, 340);
+    for (const o of near) { o.x = lerp(o.x, hero.x, .6); o.y = lerp(o.y, hero.y, .6); }
+    setTimeout(() => { for (const o of near) if (STANDING.includes(o.state)) { const d = Math.hypot(o.x - hero.x, o.y - hero.y) || 1; knock(o, (o.x - hero.x) / d, (o.y - hero.y) / d, true); } shake = 12; }, 350);
+    laughRings.push({ x: hero.x, y: hero.y, r: 340, max: 341, hits: new Set(), quake: true, hole: .6 });
+    healHero(1, hero.x, hero.y - 150); pop('珍奶黑洞！', hero.x, hero.y - 180, 1.2);
+  }
+}
+function drawEvos(time) {
+  for (const p of papers) {
+    ctx.save(); ctx.translate(p.x, p.y - p.z); ctx.rotate(Math.sin(p.z * .05) * .4);
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.fillRect(-14, -18, 28, 36); ctx.strokeRect(-14, -18, 28, 36);
+    ctx.fillStyle = '#e2412f'; ctx.font = '900 13px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('0分', 0, -6);
+    ctx.strokeStyle = '#9aa'; ctx.lineWidth = 1; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-9, 4 + i * 4); ctx.lineTo(9, 4 + i * 4); ctx.stroke(); }
+    ctx.restore(); drawShadow(p.x, p.y, 12, 4, .15);
+  }
+  for (const gh of ghosts) { ctx.save(); ctx.globalAlpha = gh.t * .5; ctx.fillStyle = '#5ad1ff'; ell(gh.x, gh.y - 50, 26, 48); ctx.fill(); ctx.restore(); }
+}
+// ---------- 老師大軍：每 45 秒一大群比較弱的老師包圍過來 ----------
+let hordeT = 0;
+function spawnHorde() {
+  const n = 14 + Math.min(12, bossIndex * 2 + Math.floor(survT / 60));
+  showBanner('老師大軍來襲！', `${n} 個老師從四面八方包圍過來`, true); sfx.boss();
+  for (let i = 0; i < n; i++) {
+    const a = i / n * Math.PI * 2, x = clamp(hero.x + Math.cos(a) * 560, BOUND.x0 + 20, BOUND.x1 - 20), y = clamp(hero.y + Math.sin(a) * 420, BOUND.y0 + 20, BOUND.y1 - 20);
+    const o = spawnOld(false); Object.assign(o, { x, y, state: 'chase', t: 99, alpha: 0, horde: true, hp: Math.max(1, gruntHP() - 1) }); olds.push(o);
+  }
+}
 function updateTalks(dt) {
   for (let i = talks.length - 1; i >= 0; i--) {
     const t = talks[i]; t.x += t.vx * dt; t.y += t.vy * dt; t.life -= dt;
@@ -1038,7 +1144,7 @@ function updateOld(o, dt) {
       break; }
     case 'gone':
       o.alpha -= dt * 3; o.vx = o.vy = 0;
-      if (o.alpha <= 0) Object.assign(o, spawnOld(false));
+      if (o.alpha <= 0) { if (o.horde) o.remove = true; else Object.assign(o, spawnOld(false)); }
       return;
     case 'fly':
       o.x += o.vx * dt; o.y += o.vy * dt; o.z += o.vz * dt; o.vz -= 1900 * dt; o.spin += o.spinV * dt;
@@ -1106,8 +1212,8 @@ const BOSSES = [
 ];
 let boss = null, nextBossAt = 6, bossIndex = 0, bossRound = 1, bossWait = 0, kos = 0, playT = 0, maxCombo = 0, ultUses = 0, hitsTaken = 0;
 // 小兵要撞幾下：第 2 輪起每輪 +1（最多 4 下）；無盡模式每打倒兩隻 Boss 就再 +1
-const gruntHP = () => 1 + Math.min(3, (bossRound - 1) + (MODE.id === 'endless' ? Math.floor((bossIndex % 4) / 2) : 0));
-const gruntTarget = () => MODE.id === 'bossrush' ? 4 : Math.min(18 + STAGE.extra, 10 + STAGE.extra + bossIndex * 2);
+const gruntHP = () => MODE.id === 'survival' ? 1 + Math.min(3, Math.floor(survT / 150)) : 1 + Math.min(3, (bossRound - 1) + (MODE.id === 'endless' ? Math.floor((bossIndex % 4) / 2) : 0));
+const gruntTarget = () => MODE.id === 'bossrush' ? 4 : MODE.id === 'survival' ? Math.min(26 + STAGE.extra, 10 + STAGE.extra + Math.floor(survT / 30)) : Math.min(18 + STAGE.extra, 10 + STAGE.extra + bossIndex * 2);
 const waves = [], slams = [], shots = [];
 function showBanner(big, sub, low = false) {
   const el = $('banner'); el.classList.toggle('low', low); el.innerHTML = `<span class="big">${big}</span>${sub ? `<span class="sub">${sub}</span>` : ''}`;
@@ -1220,7 +1326,7 @@ function hitBoss(dx = hero.dx, dy = hero.dy, fromUlt = false) {
   $('bossHp').style.width = Math.max(0, b.hp / b.maxHp * 100) + '%';
   if (b.hp <= 0) {
     b.state = 'fly'; b.bouncy = true; b.z = 0; b.vx = dx * 900; b.vy = dy * 700; b.vz = 900; b.spinV = (dx >= 0 ? 1 : -1) * 14; b.lie = dx >= 0 ? 1 : -1;
-    b.say = { text: d.down, t: 3 }; addScore(d.score); dropGems(b.x, b.y, 6, 40 * bossRound); pop('KO！', b.x, b.y - 120, 1.6); healHero(2, hero.x, hero.y - 150);
+    b.say = { text: d.down, t: 3 }; addScore(d.score); bossKills++; dropGems(b.x, b.y, 6, 40 * bossRound); pop('KO！', b.x, b.y - 120, 1.6); healHero(2, hero.x, hero.y - 150);
     for (let i = 0; i < 3; i++) setTimeout(() => burst(b.x + rand(-40, 40), b.y - b.z - rand(30, 90)), i * 120);
     showBanner(`擊敗「${d.name}」！`, d.key === 'speech' ? `全校終於安靜了　+${d.score} 分` : `+${d.score} 分`);
     shots.length = 0;
@@ -2116,7 +2222,7 @@ function drawFx() {
 
 // ---------- 主迴圈 ----------
 const cam = { x: hero.x, y: hero.y };
-let running = false, hurtFlash = 0, spawnTick = 0, timeLeft = 60, score = 0, best = 0, combo = 0, lastHit = -9, shake = 0, hitStop = 0, last = performance.now(), time = 0;
+let running = false, bossKills = 0, survT = 0, hurtFlash = 0, spawnTick = 0, timeLeft = 60, score = 0, best = 0, combo = 0, lastHit = -9, shake = 0, hitStop = 0, last = performance.now(), time = 0;
 const bestKey = () => 'tbxlt-best' + (MODE.id === 'story' ? '' : '-' + MODE.id);
 function loadBest() { try { best = +localStorage.getItem(bestKey()) || 0; } catch (_) { best = 0; } $('best').textContent = best; }
 
@@ -2128,11 +2234,19 @@ function frame(now) {
     else {
       if (allyIntro > 0) allyIntro -= dt;
       else if (inCutscene()) updateBoss(dt);
-      else { updateHero(dt); for (const o of olds) updateOld(o, dt); updateBoss(dt); updateAlly(dt); updateTalks(dt); updateSkills(dt); updateMinis(dt); updateWaves(dt); updateLaughRings(dt); updateItems(dt); }
+      else { updateHero(dt); for (const o of olds) updateOld(o, dt); updateBoss(dt); updateAlly(dt); updateTalks(dt); updateSkills(dt); updateMinis(dt); updateEvos(dt); updateWaves(dt); updateLaughRings(dt); updateItems(dt); }
       if (!hero.dead && !inCutscene() && allyIntro <= 0) {
         playT += dt;
         // 下一隻 Boss：撞夠人數，或等太久就自己出來
-        if (!boss) { bossWait += dt; if (MODE.id === 'bossrush' ? bossWait > 2.5 : (score >= nextBossAt || bossWait > (bossIndex > 0 ? 12 : 30))) spawnBoss(); }
+        if (MODE.id !== 'bossrush' && (hordeT += dt) >= 45) { hordeT = 0; spawnHorde(); }
+        for (let i = olds.length - 1; i >= 0; i--) if (olds[i].remove) olds.splice(i, 1);
+        if (MODE.id === 'survival') { // 生存 10 分鐘：每 2 分鐘來一隻 Boss，撐滿 10 分鐘就贏
+          survT += realDt; const left = Math.max(0, 600 - survT), sec = Math.ceil(left), txt = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+          if (txt !== $('timeLeft').textContent) { $('timeLeft').textContent = txt; $('timerChip').classList.toggle('low', left <= 30); }
+          if (!boss && bossIndex < 4 && survT >= (bossIndex + 1) * 120) spawnBoss();
+          if (left <= 0) { showEnding(); }
+        }
+        else if (!boss) { bossWait += dt; if (MODE.id === 'bossrush' ? bossWait > 2.5 : (score >= nextBossAt || bossWait > (bossIndex > 0 ? 12 : 30))) spawnBoss(); }
         if (MODE.id === 'timed') {
           timeLeft -= realDt; const sec = Math.ceil(Math.max(0, timeLeft));
           if (sec !== +$('timeLeft').textContent) { $('timeLeft').textContent = sec; $('timerChip').classList.toggle('low', sec <= 10); }
@@ -2140,7 +2254,7 @@ function frame(now) {
         }
         // 小兵補到目標數量
         spawnTick -= dt;
-        if (olds.length < gruntTarget() && spawnTick <= 0) { olds.push(spawnOld(false)); spawnTick = 0.4; }
+        if (olds.filter(o => !o.horde).length < gruntTarget() && spawnTick <= 0) { olds.push(spawnOld(false)); spawnTick = 0.4; }
       }
     }
     updateFx(dt);
@@ -2187,7 +2301,7 @@ function frame(now) {
     else if (e.type === 'hoop') drawHoop(e);
     else if (e.type === 'statue') drawStatue(e, time);
   }
-  drawShots(time); drawTalks(); drawSkillFx(time); drawMinis(time);
+  drawShots(time); drawTalks(); drawSkillFx(time); drawMinis(time); drawEvos(time);
   drawFx();
   if (STAGE.id !== 'day') { // 關卡的時段：放學後的夕陽、晚自習的黑暗
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2228,12 +2342,14 @@ function gameOver() {
   hero.dead = true; hero.stun = 0; hero.laugh = -1; shake = 20; sfx.hit();
   $('overTitle').textContent = '被退學了！';
   $('overScore').textContent = score; $('overBest').textContent = best;
+  $('overCoins').textContent = `金幣 +${payCoins(false)}（共 ${coins}）`;
   $('overMsg').textContent = boss ? `「${boss.def.name}」把你退學了。` : pick(['老師們聯手把你退學了。', '主任把退學單拍在你臉上。', '大過記滿三支，直接退學。']);
   setTimeout(() => { $('over').hidden = false; $('again').focus(); }, 1200);
 }
 function resetGame() {
   score = 0; $('score').textContent = 0; combo = 0; ult = 0; updateUltBtn();
   hero.summer = 0; hero.shield = false; hero.shieldT = 0; hero.regenT = 0; minis.length = 0;
+  evolved = {}; papers.length = ghosts.length = 0; stormCd = 2; quakeCd = 2.5; holeCd = 8; hordeT = 0; survT = 0; bossKills = 0;
   level = 1; xp = 0; xpNeed = 60; pendingLv = 0; lvOpen = false; skills = {}; bookCd = 1; gems.length = books.length = 0; $('lvlup').hidden = true;
   recomputeStats(); renderXp();
   Object.assign(hero, { x: CX, y: PLAZA_Y1 + 60, vx: 0, vy: 0, hp: MAX_HP, inv: 1.5, dead: false, stun: 0, atk: -1, laugh: -1, bumpT: 0, cd: 0 });
@@ -2243,7 +2359,7 @@ function resetGame() {
   waves.length = slams.length = shots.length = items.length = laughRings.length = fx.length = talks.length = 0;
   ally = null; statueAwake = false; allyIntro = 0; allySaved = false;
   olds.length = 0; for (let i = 0; i < Math.min(10, gruntTarget()); i++) { const o = spawnOld(i < 4); o.alpha = 1; olds.push(o); }
-  timeLeft = 60; $('timeLeft').textContent = 60; $('timerChip').classList.remove('low');
+  timeLeft = 60; $('timeLeft').textContent = MODE.id === 'survival' ? '10:00' : 60; ult = 20 * mt('ult'); updateUltBtn(); $('timerChip').classList.remove('low');
   $('over').hidden = true; closeMvp(); running = true;
 }
 $('again').addEventListener('click', resetGame);
@@ -2252,6 +2368,8 @@ let mvpOn = false;
 function showEnding() {
   resetStick();
   running = false; hero.vx = hero.vy = 0;
+  $('endCoins').textContent = '+' + payCoins(true);
+  $('mvpSub').textContent = MODE.id === 'survival' ? '撐過 10 分鐘，你就是老頭國中的 MVP！' : '打倒校長青山，你就是老頭國中的 MVP！';
   $('endScore').textContent = score; $('endKO').textContent = kos; $('endCombo').textContent = maxCombo;
   $('endLv').textContent = level; $('endUlt').textContent = ultUses; $('endHits').textContent = hitsTaken;
   $('endTime').textContent = `${Math.floor(playT / 60)}:${String(Math.floor(playT % 60)).padStart(2, '0')}`;
@@ -2336,6 +2454,7 @@ function timeUp() {
   $('overTitle').textContent = '時間到！';
   $('overScore').textContent = score; $('overBest').textContent = best;
   $('overMsg').textContent = `60 秒內撞出 ${score} 分！`;
+  $('overCoins').textContent = `金幣 +${payCoins(false)}（共 ${coins}）`;
   setTimeout(() => { $('over').hidden = false; $('again').focus(); }, 500);
 }
 
@@ -2358,6 +2477,7 @@ const MODES = [
   { id: 'endless', ico: '∞', name: '無盡模式', desc: 'Boss 輪流來，撐到被退學' },
   { id: 'bossrush', ico: '★', name: 'Boss 連戰', desc: '小兵很少，Boss 一隻接一隻' },
   { id: 'timed', ico: '60s', name: '限時 60 秒', desc: '60 秒內拿越多分越好' },
+  { id: 'survival', ico: '10:00', name: '生存 10 分鐘', desc: '撐滿 10 分鐘就贏，每 2 分鐘來一隻 Boss' },
 ];
 let CHAR = CHARS[0], STAGE = STAGES[0], MODE = MODES[0];
 const sel = { char: 'yellow', stage: 'day', mode: 'story' };
@@ -2393,6 +2513,17 @@ function optButton(group, item, inner) {
   return bt;
 }
 const bar = (label, v) => `<div class="stat"><span>${label}</span><i style="--v:${Math.round(v * 100)}%"></i></div>`;
+function renderShop() {
+  $('coinNow').textContent = coins;
+  const box = $('optShop'); box.innerHTML = '';
+  for (const u of META_UP) {
+    const l = mt(u.id), maxed = l >= u.max, c = u.cost(l);
+    const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'opt'; bt.disabled = maxed || coins < c;
+    bt.innerHTML = `<b>${u.name}</b><small>${u.desc}</small><span class="lvdots">${Array.from({ length: u.max }, (_, i) => `<i class="${i < l ? 'on' : ''}"></i>`).join('')}</span><span class="cost">${maxed ? '已滿級' : `${c} 金幣`}</span>`;
+    bt.addEventListener('click', () => { if (coins < c || maxed) return; coins -= c; meta[u.id] = l + 1; saveMeta(); renderShop(); tone(660, 1320, .2, 'triangle', .15); });
+    box.appendChild(bt);
+  }
+}
 function buildMenu() {
   const oc = $('optChar'); oc.innerHTML = '';
   for (const ch of CHARS) {
@@ -2405,6 +2536,7 @@ function buildMenu() {
   }
   const os = $('optStage'); os.innerHTML = '';
   for (const st of STAGES) os.appendChild(optButton('stage', st, `<div class="swatch" style="background:${st.swatch}"></div><b>${st.name}</b><small>${st.desc}</small>`));
+  renderShop();
   const om = $('optMode'); om.innerHTML = '';
   for (const md of MODES) om.appendChild(optButton('mode', md, `<span class="mode-ico">${md.ico}</span><b>${md.name}</b><small>${md.desc}</small>`));
 }
@@ -2417,7 +2549,7 @@ function applySelection() {
   heroSrc = CHAR.hue == null ? heroImg : heroFor(CHAR); buildParts();
   atkSrc = CHAR.hue == null || !atkImg.complete ? atkImg : (atkTints[CHAR.id] || (atkTints[CHAR.id] = tintCanvas(atkImg, CHAR.hue)));
   laughSrc = CHAR.hue == null || !laughImg.complete ? laughImg : (laughTints[CHAR.id] || (laughTints[CHAR.id] = tintCanvas(laughImg, CHAR.hue)));
-  $('timerChip').hidden = MODE.id !== 'timed';
+  $('timerChip').hidden = MODE.id !== 'timed' && MODE.id !== 'survival'; $('timeUnit').hidden = MODE.id === 'survival';
   document.querySelector('.mvp-tag').textContent = CHAR.name; $('ultName').textContent = CHAR.ultName;
   loadBest();
 }
@@ -2425,7 +2557,7 @@ function backToMenu() {
   running = false; closeMvp(); hideBossCard(); $('over').hidden = true;
   boss = null; $('bossBar').hidden = true;
   $('hud').hidden = true; bumpBtn.hidden = true; ultBtn.hidden = true; $('stickHint').hidden = true;
-  $('start').hidden = false; $('go').focus({ preventScroll: true });
+  renderShop(); $('start').hidden = false; $('go').focus({ preventScroll: true });
 }
 $('toMenu').addEventListener('click', backToMenu);
 $('endMenu').addEventListener('click', backToMenu);
