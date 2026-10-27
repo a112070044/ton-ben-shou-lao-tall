@@ -3015,7 +3015,14 @@ function paintTitle(now) {
   for (let i = 0; i < 16; i++) { g.rotate(Math.PI / 8); g.beginPath(); g.moveTo(0, 0); g.lineTo(-70, -2000); g.lineTo(70, -2000); g.fill(); }
   g.restore();
   const ch = CHARS.find(c => c.id === sel.char) || CHARS[0], img = charImg(ch);
-  if (img && (img.naturalWidth || img.width)) {
+  if (!ch.sprite && laughImg.complete && laughImg.naturalWidth) { // 黃／粉紅／藍同學：一直招牌大笑
+    const src = ch.hue == null ? laughImg : (laughTints[ch.id] || (laughTints[ch.id] = tintCanvas(laughImg, ch.hue)));
+    const ga = $('title').querySelector('.ts-gap').getBoundingClientRect();
+    const h = Math.max(150, Math.min(ga.height + 4, H * .46, 380)), w = h * LAUGH_FW / LAUGH_FH, foot = ga.bottom + 14;
+    const f = LAUGH_FIRST + Math.floor(t * LAUGH_FPS) % (LAUGH_FRAMES - LAUGH_FIRST);
+    g.fillStyle = 'rgba(0,0,0,.3)'; g.beginPath(); g.ellipse(W / 2, foot - 4, w * .42, 14, 0, 0, 7); g.fill();
+    g.drawImage(src, (f % LAUGH_COLS) * LAUGH_FW, Math.floor(f / LAUGH_COLS) * LAUGH_FH, LAUGH_FW, LAUGH_FH, W / 2 - w / 2, foot - h, w, h);
+  } else if (img && (img.naturalWidth || img.width)) {
     const ga = $('title').querySelector('.ts-gap').getBoundingClientRect();
     const h = Math.max(130, Math.min(ga.height - 6, H * .42, 340)), w = h * (img.naturalWidth || img.width) / (img.naturalHeight || img.height);
     const foot = ga.bottom + 10, bob = Math.abs(Math.sin(t * 3)) * 10, sq = Math.sin(t * 6) * .02;
