@@ -112,25 +112,47 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--grass);color:var
 @keyframes slam{from{transform:translate(-50%,-50%) scale(2.2) rotate(-6deg);opacity:0}to{transform:translate(-50%,-50%) scale(1) rotate(-3deg);opacity:1}}
 
 #bump{position:fixed;right:calc(22px + env(safe-area-inset-right,0px));bottom:calc(26px + env(safe-area-inset-bottom,0px));
-  width:96px;height:96px;border-radius:50%;border:4px solid var(--ink);background:var(--hero);
+  width:96px;height:96px;border-radius:50%;border:4px solid var(--ink);background:var(--sk-bg,none),var(--sk-a,var(--hero));
   box-shadow:0 6px 0 var(--ink);font-family:var(--font-display);font-weight:900;font-size:26px;color:var(--ink);
   touch-action:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
-#bump:active,#bump.on{transform:translateY(4px);box-shadow:0 2px 0 var(--ink);background:var(--hero-deep)}
+#bump:active,#bump.on{transform:translateY(4px);box-shadow:0 2px 0 var(--ink);background:var(--sk-bg,none),var(--sk-b,var(--hero-deep))}
 #bump:focus-visible{outline:3px solid #fff;outline-offset:3px}
 #bump small{display:block;font-size:11px;font-weight:700;margin-top:-2px}
 #ult{position:fixed;right:calc(30px + env(safe-area-inset-right,0px));bottom:calc(138px + env(safe-area-inset-bottom,0px));
   width:80px;height:80px;border-radius:50%;border:4px solid var(--ink);box-shadow:0 5px 0 var(--ink);padding:0;
-  background:conic-gradient(var(--pow) calc(var(--p,0) * 1%),#e9dcbc 0);font-family:var(--font-display);font-weight:900;
+  background:conic-gradient(var(--sk-ring,var(--pow)) calc(var(--p,0) * 1%),#e9dcbc 0);font-family:var(--font-display);font-weight:900;
   font-size:21px;color:var(--ink);cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent}
 #ult.pc{bottom:calc(26px + env(safe-area-inset-bottom,0px))}
-#ult span{position:absolute;inset:7px;border-radius:50%;background:var(--paper);display:grid;place-content:center;line-height:1.05}
+#ult span{position:absolute;inset:7px;border-radius:50%;background:var(--paper);display:grid;place-content:center;line-height:1.05;overflow:hidden;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff}
 #ult i{font-style:normal}
 #ultFace{position:fixed;left:50%;top:44%;width:min(72vw,440px);transform:translate(-50%,-50%);pointer-events:none;z-index:25;filter:drop-shadow(0 10px 0 rgba(59,39,22,.6))}
 #ultFace.show{animation:faceIn 1.5s both}
 @keyframes faceIn{0%{transform:translate(-50%,-50%) scale(.2) rotate(-20deg);opacity:0}15%{transform:translate(-50%,-50%) scale(1.15) rotate(4deg);opacity:1}70%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}100%{transform:translate(-50%,-50%) scale(1.4);opacity:0}}
 #ult small{display:block;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
 #ult.ready{animation:glow .7s ease-in-out infinite alternate}
-#ult.ready span{background:var(--hero)}
+#ult.ready span{background:var(--sk-a,var(--hero))}
+/* 造型按鍵：每個角色一組（顏色、花紋、角上的小裝飾、大招按鈕裡的頭像） */
+#ult span::before{content:"";position:absolute;inset:0;background:var(--sk-face,none) center 18%/cover no-repeat;filter:grayscale(1) opacity(.55);transition:filter .3s}
+#ult.ready span::before{filter:none}
+#ult i,#ult small{position:relative}
+#bump::after,.pv-bump::after{content:attr(data-deco);position:absolute;top:-12px;right:-8px;font-size:24px;line-height:1;filter:drop-shadow(0 2px 0 var(--ink))}
+#stickKnob{background:var(--sk-bg,none),var(--sk-a,var(--paper))}
+[data-skin="yellow"]{--sk-a:#ffd54a;--sk-b:#e9b100;--sk-ring:#e2412f;--sk-bg:radial-gradient(circle at 30% 25%,rgba(255,255,255,.65) 0 12%,transparent 13%)}
+[data-skin="pink"]{--sk-a:#ff9cc4;--sk-b:#e85d98;--sk-ring:#ff3d9a;--sk-bg:radial-gradient(circle at 26% 30%,rgba(255,255,255,.75) 0 8%,transparent 9%),radial-gradient(circle at 74% 68%,rgba(255,255,255,.55) 0 7%,transparent 8%),radial-gradient(circle at 70% 24%,rgba(255,255,255,.5) 0 4%,transparent 5%),radial-gradient(circle at 30% 76%,rgba(255,255,255,.45) 0 5%,transparent 6%)}
+[data-skin="blue"]{--sk-a:#7fd0ff;--sk-b:#3a96e0;--sk-ring:#1b5fc0;--sk-bg:repeating-radial-gradient(circle at 50% 130%,transparent 0 9px,rgba(255,255,255,.4) 9px 12px)}
+[data-skin="mouse"]{--sk-a:#ffd36b;--sk-b:#e6a92a;--sk-ring:#f08a00;--sk-bg:radial-gradient(circle at 26% 30%,#e3a137 0 8%,transparent 9%),radial-gradient(circle at 72% 58%,#e3a137 0 10%,transparent 11%),radial-gradient(circle at 40% 78%,#e3a137 0 6%,transparent 7%),radial-gradient(circle at 76% 24%,#e3a137 0 5%,transparent 6%)}
+[data-skin="baby"]{--sk-a:#bfe6ff;--sk-b:#86c8f0;--sk-ring:#ff8fb8;--sk-bg:radial-gradient(circle,rgba(255,255,255,.95) 0 3px,transparent 4px) 0 0/16px 16px}
+[data-skin="egg"]{--sk-a:#fffaf0;--sk-b:#f0e2c0;--sk-ring:#ffb300;--sk-bg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M8 26 L18 19 L28 29 L39 17 L50 29 L61 17 L72 29 L82 19 L92 26' fill='none' stroke='%233b2716' stroke-width='3.5' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% 100%,radial-gradient(circle at 50% 120%,#ffe08a 0 38%,transparent 39%)}
+[data-skin="mouse"] #bump::before,.skin-prev[data-skin="mouse"] .pv-bump::before{content:"";position:absolute;z-index:-1;top:-16px;left:2px;right:2px;height:34px;
+  background:radial-gradient(circle at 16% 60%,#e7b98f 0 9px,var(--ink) 9px 12px,#c9a27a 12px 15px,var(--ink) 15px 17px,transparent 17px),radial-gradient(circle at 84% 60%,#e7b98f 0 9px,var(--ink) 9px 12px,#c9a27a 12px 15px,var(--ink) 15px 17px,transparent 17px)}
+/* 造型按鍵預覽（選角色、圖鑑） */
+.skin-prev{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:6px;font-size:11px;font-weight:900;color:#6b5a3a;min-width:0}
+.skin-prev>span:last-child{flex-basis:100%;line-height:1.3}
+.pv-bump,.pv-ult{position:relative;flex:none;border-radius:50%;border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);display:grid;place-content:center;font-family:var(--font-display);font-weight:900;color:var(--ink)}
+.pv-bump{width:40px;height:40px;font-size:13px;background:var(--sk-bg,none),var(--sk-a)}
+.pv-bump::after{font-size:13px;top:-7px;right:-6px}
+.pv-ult{width:34px;height:34px;background:var(--paper) var(--sk-face,none) center 18%/cover no-repeat;outline:3px solid var(--sk-ring);outline-offset:-1px}
+.skin-prev[data-skin="mouse"] .pv-bump::before{top:-9px;height:20px;transform:scale(.45);transform-origin:50% 100%}
 #ult:focus-visible{outline:3px solid #fff;outline-offset:3px}
 @keyframes glow{from{transform:scale(1)}to{transform:scale(1.08);box-shadow:0 5px 0 var(--ink),0 0 0 8px rgba(226,65,47,.35)}}
 
@@ -3353,6 +3375,32 @@ function tintCanvas(img, hue) {
   g.putImageData(d, 0, 0); return c;
 }
 const heroTints = {}, laughTints = {}, atkTints = {};
+// 造型按鍵：每個角色專屬的攻擊鍵文字、角上的裝飾，大招按鈕裡放角色頭像
+const SKINS = {
+  yellow: { name: '招牌肚肚', verb: '撞！', sub: '肚子攻擊', deco: '⭐' },
+  pink: { name: '粉紅泡泡', verb: '撞！', sub: '泡泡肚', deco: '💗' },
+  blue: { name: '冰藍浪花', verb: '撞！', sub: '浪花肚', deco: '❄️' },
+  mouse: { name: '起司鼠鼠', verb: '咬！', sub: '鼠鼠衝撞', deco: '🧀' },
+  baby: { name: '奶嘴寶寶', verb: '撞！', sub: '寶寶頭槌', deco: '🍼' },
+  egg: { name: '夏日奶蛋', verb: '滾！', sub: '蛋蛋衝撞', deco: '☀️' },
+};
+const skinFaces = {};
+function skinFace(ch) { // 角色頭像（黃／粉紅／藍同學用大笑的那一格），存成圖片網址給 CSS 用
+  if (skinFaces[ch.id]) return skinFaces[ch.id];
+  const c = document.createElement('canvas'); c.width = c.height = 160; const g = c.getContext('2d');
+  try {
+    if (ch.sprite) { const im = sprites[ch.sprite]; if (!spriteReady(ch.sprite)) return ''; const w = im.naturalWidth, h = im.naturalHeight; g.drawImage(im, 0, 0, w, w * .9, 0, 0, 160, 144); }
+    else { if (!laughImg.complete || !laughImg.naturalWidth) return ''; const src = ch.hue == null ? laughImg : (laughTints[ch.id] || (laughTints[ch.id] = tintCanvas(laughImg, ch.hue))), f = 30;
+      g.drawImage(src, (f % LAUGH_COLS) * LAUGH_FW, Math.floor(f / LAUGH_COLS) * LAUGH_FH, LAUGH_FW, LAUGH_FW, 0, 0, 160, 160); }
+    return (skinFaces[ch.id] = `url(${c.toDataURL('image/png')})`);
+  } catch (_) { return ''; }
+}
+function applySkin(ch) {
+  const sk = SKINS[ch.id] || SKINS.yellow; document.body.dataset.skin = ch.id;
+  bumpBtn.innerHTML = `${sk.verb}<small>${sk.sub}</small>`; bumpBtn.dataset.deco = sk.deco;
+  document.body.style.setProperty('--sk-face', skinFace(ch) || 'none');
+}
+const skinPreview = ch => { const sk = SKINS[ch.id]; return `<div class="skin-prev" data-skin="${ch.id}" style="--sk-face:${skinFace(ch) || 'none'}"><span class="pv-bump" data-deco="${sk.deco}">${sk.verb.replace('！', '')}</span><span class="pv-ult"></span><span>專屬按鍵・${sk.name}</span></div>`; };
 const heroFor = ch => heroTints[ch.id] || (heroTints[ch.id] = tintCanvas(heroImg, ch.hue));
 function optButton(group, item, inner) {
   const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'opt'; bt.dataset.id = item.id;
@@ -3379,7 +3427,7 @@ function buildMenu() {
   const oc = $('optChar'); oc.innerHTML = '';
   for (const ch of CHARS) {
     const bt = optButton('char', ch, `<canvas width="160" height="160"></canvas><b>${ch.name}</b><small>${ch.desc}</small>` +
-      bar('速度', (ch.speed - 240) / 160) + bar('血量', ch.hp / 7) + bar('力氣', (ch.power - .7) / .55));
+      bar('速度', (ch.speed - 240) / 160) + bar('血量', ch.hp / 7) + bar('力氣', (ch.power - .7) / .55) + skinPreview(ch));
     const cv = bt.querySelector('canvas'), img = ch.sprite ? sprites[ch.sprite] : heroFor(ch);
     const paint = () => { const g = cv.getContext('2d'), h = ch.sprite ? 138 : 146, w = Math.min(150, h * img.width / img.height); g.clearRect(0, 0, 160, 160); g.drawImage(img, (160 - w) / 2, 160 - h - 6, w, h); };
     if (!ch.sprite || spriteReady(ch.sprite)) paint(); else img.addEventListener('load', paint, { once: true });
@@ -3392,6 +3440,7 @@ function buildMenu() {
   for (const md of MODES) om.appendChild(optButton('mode', md, `<span class="mode-ico">${md.ico}</span><b>${md.name}</b><small>${md.desc}</small>`));
 }
 if (heroImg.complete && heroImg.naturalWidth) buildMenu(); else heroImg.addEventListener('load', buildMenu);
+if (!laughImg.complete || !laughImg.naturalWidth) laughImg.addEventListener('load', () => { if (heroImg.complete) buildMenu(); }, { once: true }); // 大笑圖載入後，按鍵預覽才有頭像
 function applySelection() {
   CHAR = CHARS.find(c => c.id === sel.char) || CHARS[0];
   STAGE = STAGES.find(c => c.id === sel.stage) || STAGES[0];
@@ -3401,7 +3450,7 @@ function applySelection() {
   atkSrc = CHAR.hue == null || !atkImg.complete ? atkImg : (atkTints[CHAR.id] || (atkTints[CHAR.id] = tintCanvas(atkImg, CHAR.hue)));
   laughSrc = CHAR.hue == null || !laughImg.complete ? laughImg : (laughTints[CHAR.id] || (laughTints[CHAR.id] = tintCanvas(laughImg, CHAR.hue)));
   $('timerChip').hidden = MODE.id !== 'timed' && MODE.id !== 'survival'; $('timeUnit').hidden = MODE.id === 'survival';
-  document.querySelector('.mvp-tag').textContent = CHAR.name; $('ultName').textContent = CHAR.ultName;
+  document.querySelector('.mvp-tag').textContent = CHAR.name; $('ultName').textContent = CHAR.ultName; applySkin(CHAR);
   loadBest();
 }
 
@@ -3514,7 +3563,7 @@ function renderDex(tab) {
   } else if (tab === 'char') {
     $('dexCount').textContent = `${CHARS.length} 位同學＋1 位夥伴`;
     for (const ch of CHARS) {
-      const el = card('', `<canvas width="220" height="260"></canvas><div><b>${ch.name}</b><p>${ch.desc}</p>${bar('速度', (ch.speed - 240) / 160)}${bar('血量', ch.hp / 7)}${bar('力氣', (ch.power - .7) / .55)}<p>血量 ${ch.hp}・大招「${ch.ultName}」</p></div>`);
+      const el = card('', `<canvas width="220" height="260"></canvas><div><b>${ch.name}</b><p>${ch.desc}</p>${bar('速度', (ch.speed - 240) / 160)}${bar('血量', ch.hp / 7)}${bar('力氣', (ch.power - .7) / .55)}<p>血量 ${ch.hp}・大招「${ch.ultName}」</p>${skinPreview(ch)}</div>`);
       const cv = el.querySelector('canvas'), img = charImg(ch);
       const paint = () => { const g = cv.getContext('2d'), iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height, h = 230, w = Math.min(210, h * iw / ih); g.drawImage(img, (220 - w) / 2, 260 - h - 10, w, h); };
       if (img.naturalWidth || img.width) paint(); else img.addEventListener('load', paint, { once: true });
